@@ -1,14 +1,16 @@
-import React, {Text} from 'react';
+import React from 'react';
 
 
 import {
     Table, Icon, Input, Select, message, Button
 } from 'antd';
 
+import StaffInfoDialog from './StaffInfoDialog';
+
 const Option = Select.Option;
 
 const jobs = ['所有', 'Android', 'IOS', 'Web前端', 'Java后台', '算法', '数据库'];
-
+const edus = ['博士', '硕士', '本科', '专科', '其他']
 
 class StaffList extends React.Component {
     columns = [{
@@ -20,6 +22,15 @@ class StaffList extends React.Component {
         dataIndex: 'job',
         key: 'job',
         render:(index) => (<span>{jobs[index]}</span>)
+    }, {
+        title: '公司',
+        dataIndex: 'company',
+        key: 'company',
+    }, {
+        title: '学历',
+        dataIndex: 'education',
+        key: 'education',
+        render:(index) => (<span>{edus[index]}</span>)
     }, {
         title: '出生年',
         dataIndex: 'birth_year',
@@ -46,10 +57,12 @@ class StaffList extends React.Component {
         key: 'wechat',
     }, {
         title: '编辑',
+        dataIndex: 'id',
         key: 'action',
-        render: (text, record) => (
+        fixed: 'right',
+        render: (id) => (
             <span>
-                <a href="javascript:;"><Icon type="edit" /></a>
+                <Icon type="edit" onClick={id => this.showInfoDialog()}/>
             </span>
         ),
     }];
@@ -59,6 +72,7 @@ class StaffList extends React.Component {
     state = {
         mJobs: [],
         mData: [],
+        showInfoDialog: false,
     };
 
     getData() {
@@ -66,13 +80,15 @@ class StaffList extends React.Component {
             
             let jobIndex = Math.floor((Math.random()*(jobs.length-1))+1);
             //let jobIndex = i % this.state.mJobs.length;
-
+            let edu = Math.floor((Math.random()*(edus.length -1)));
             let staff = {
                 key: '' + i,
                 id: i,
                 name: '姓名-' + i,
                 job: jobIndex,
-                birth_year: 30,
+                company: '公司-' + i,
+                birth_year: 85 + edu*2,
+                education: edu,
                 hometown: '深圳',
                 phone: '13567893456',
                 email: 'test@163.com',
@@ -93,10 +109,15 @@ class StaffList extends React.Component {
         this.getData();
     }
 
+    showInfoDialog(id) {
+        this.setState({
+            showInfoDialog: true,
+        });
+    }
     
     handleFilterChange(value) {
         message.info(`selected ${value}`);
-        let items = this.mAllData.filter(item => item.job == value);
+        let items = this.mAllData.filter(item => item.job === value);
         this.setState({
             mData: items,
         });
@@ -115,13 +136,19 @@ class StaffList extends React.Component {
                         style={{ width: 200, marginLeft: 10 }}
                     />
 
-                    <Button type="primary" shape="round" icon="plus" style={{float: 'right'}}>添加</Button>
+                    <Button type="primary" shape="round" icon="plus" style={{float: 'right'}} onClick={() => this.showInfoDialog()}>添加</Button>
 
                 </div>
                 <Table
                     style={{ marginTop: 10 }}
                     dataSource={this.state.mData}
-                    columns={this.columns} />
+                    columns={this.columns}
+                    scroll={{ x: 800 }} />
+
+                <StaffInfoDialog 
+                visible={this.state.showInfoDialog} 
+                afterClose={() => this.setState({showInfoDialog:false})}/>
+
             </div>
         )
     }
