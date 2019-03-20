@@ -10,16 +10,14 @@ insert into t_job(name) values("Andorid");
 insert into t_job(name) values("IOS");
 insert into t_job(name) values("测试");
 
-
-
 CREATE TABLE IF NOT EXISTS `t_staff`(
 `id` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-`name` VARCHAR(100) NOT NULL,
+`name` VARCHAR(40) NOT NULL,
 `job` INT UNSIGNED NOT NULL,
-`company` VARCHAR(40),
+`company` VARCHAR(100),
+`education` SMALLINT,
 `gender` CHAR(2),
 `birth_year` SMALLINT,
-`education` SMALLINT,
 `hometown` VARCHAR(40),
 `marriage` BOOLEAN, 
 `phone` VARCHAR(20),
@@ -28,18 +26,18 @@ CREATE TABLE IF NOT EXISTS `t_staff`(
 `wechat` VARCHAR(20),
 `experience` TEXT,
 `contact_logs` TEXT,
-`create_time` DATETIME DEFAULT CURRENT_TIMESTAMP,
-`modify_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+`create_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+`modify_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
-alter table t_staff add constraint fk_staff_job foreign key job references t_job(id);
+-- alter table t_staff add constraint fk_staff_job foreign key job references t_job(id);
 
 
-insert into t_staff(name, job, company, gender, birth_year, education, hometown, marriage, 
+insert into t_staff(name, job, company, education, gender, birth_year, hometown, marriage, 
 phone, email, qq, wechat, experience, contact_logs)
  values(
-'范先生',1,'深圳新思','男',87,3,'广东',0,
+'范先生',1,'深圳新思',3,'男',87,'广东',0,
 '13760798503','test@163.com','969853979','',
 '11年本科毕业，2010.12 - 2013.07汇丰、2013.07 – 至今深圳市网新新思',
 '15.1.12已经跳槽去了一家上市公司。'

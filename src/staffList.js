@@ -78,7 +78,7 @@ class StaffList extends React.Component {
         mJobs: [],
         mData: [],
         showInfoDialog: false,
-        smallSize: true,
+        smallSize: false,
     };
 
     getData() {
@@ -125,6 +125,11 @@ class StaffList extends React.Component {
     handleWindowWidth = () => {
         // 窗口太小时，菜单列换行
         let width = document.documentElement.clientWidth;
+        console.log("window width: " + width);
+
+        let tableWidth = this.refs.table.clientWidth;
+        console.log("table width: " + tableWidth);
+
         this.setState({
             smallSize: width < 1200,
         });
@@ -205,6 +210,7 @@ class StaffList extends React.Component {
 
                 </div>
                 <Table
+                    ref="table"
                     style={{ marginTop: 10 }}
                     dataSource={this.state.mData}
                     columns={this.columns}

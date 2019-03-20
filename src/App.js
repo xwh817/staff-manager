@@ -37,8 +37,9 @@ class App extends Component {
     }
 
     return (
-      <Layout style={{ minHeight: '100vh' }}>
+      <Layout style={{ minHeight: '100vh'}}>
         <Sider
+        width={152}
           collapsible
           collapsed={this.state.collapsed}
           onCollapse={this.onCollapse}
@@ -47,7 +48,7 @@ class App extends Component {
             <img src={logo} alt='' style={{width:50, height:50, marginTop:15}}/>
           </div>
 
-          <Menu theme="dark" defaultSelectedKeys={[this.state.currentPage]} mode="inline" onSelect={({key}) => {this.setState({currentPage:key});console.log(key);}}>
+          <Menu theme="dark" defaultSelectedKeys={[this.state.currentPage]} mode="inline" onSelect={({key}) => this.setState({currentPage:key})}>
             <Menu.Item key="1">
               <Icon type="team" />
               <span>人员管理</span>
