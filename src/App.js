@@ -1,25 +1,25 @@
 import React, { Component } from 'react';
-import ReactDOM from 'react-dom';
 
 import 'antd/dist/antd.css';
 import './App.css';
 import logo from './logo.svg';
 
 import {
-  Layout, Menu, Breadcrumb, Icon,
+  Layout, Menu, Icon,
 } from 'antd';
 
 import StaffList from './staffList';
+import JobList from './jobList';
 
 
 const {
-  Header, Content, Footer, Sider,
+  Content, Footer, Sider,
 } = Layout;
-const SubMenu = Menu.SubMenu;
 
-class App extends React.Component {
+class App extends Component {
   state = {
     collapsed: false,
+    currentPage: '1',
   };
 
   onCollapse = (collapsed) => {
@@ -28,6 +28,14 @@ class App extends React.Component {
   }
 
   render() {
+
+    let pageView;
+    if (this.state.currentPage === '2') {
+      pageView = <JobList/>;
+    } else {
+      pageView = <StaffList/>;
+    }
+
     return (
       <Layout style={{ minHeight: '100vh' }}>
         <Sider
@@ -36,38 +44,27 @@ class App extends React.Component {
           onCollapse={this.onCollapse}
         >
           <div className="logo" style={{height:80,backgroundColor:"#333333", textAlign: 'center'}}>
-            <img src={logo} style={{width:50, height:50, marginTop:15}}/>
+            <img src={logo} alt='' style={{width:50, height:50, marginTop:15}}/>
           </div>
 
-          <Menu theme="dark" defaultSelectedKeys={['1']} mode="inline">
+          <Menu theme="dark" defaultSelectedKeys={[this.state.currentPage]} mode="inline" onSelect={({key}) => {this.setState({currentPage:key});console.log(key);}}>
             <Menu.Item key="1">
               <Icon type="team" />
-              <span>Option 1</span>
+              <span>人员管理</span>
             </Menu.Item>
             <Menu.Item key="2">
               <Icon type="cluster" />
-              <span>Option 2</span>
+              <span>职位管理</span>
             </Menu.Item>
-            <SubMenu
-              key="sub1"
-              title={<span><Icon type="user" /><span>User</span></span>}
-            >
-              <Menu.Item key="3">Tom</Menu.Item>
-              <Menu.Item key="4">Bill</Menu.Item>
-              <Menu.Item key="5">Alex</Menu.Item>
-            </SubMenu>
           </Menu>
         </Sider>
 
         <Layout>
           {/* <Header style={{ margin: '0 16px', background: '#fff', padding: 0 }} /> */}
-          <Content style={{ margin: '0 16px' }}>
-            <Breadcrumb style={{ margin: '16px 0' }}>
-              <Breadcrumb.Item>User</Breadcrumb.Item>
-              <Breadcrumb.Item>Bill</Breadcrumb.Item>
-            </Breadcrumb>
+          <Content style={{ margin: '12px 12px' }}>
+           
             <div style={{ padding: 24, background: '#fff', minHeight: 360 }}>
-              <StaffList/>
+              {pageView}
             </div>
           </Content>
           <Footer style={{ textAlign: 'center' }}>
