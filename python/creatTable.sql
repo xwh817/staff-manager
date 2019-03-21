@@ -1,3 +1,5 @@
+create database staff_manager;
+use staff_manager;
 
 CREATE TABLE IF NOT EXISTS `t_job`(
 `id` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,

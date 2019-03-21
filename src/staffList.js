@@ -1,5 +1,6 @@
 import React from 'react';
 import Const from './Const'
+import HttpUtil from './Utils/HttpUtil'
 
 
 import {
@@ -83,9 +84,7 @@ class StaffList extends React.Component {
 
     getData() {
         for (let i = 1; i <= 100; i++) {
-
             let jobIndex = Math.floor((Math.random() * (Const.jobs.length - 1)) + 1);
-            //let jobIndex = i % this.state.mJobs.length;
             let edu = Math.floor((Math.random() * (Const.edus.length - 1)));
             let staff = {
                 key: '' + i,
@@ -105,12 +104,25 @@ class StaffList extends React.Component {
             }
 
             this.mAllData.push(staff);
-        }
-
+        } 
         this.setState({
             mJobs: Const.jobs,
             mData: this.mAllData,
         });
+        
+
+        /* HttpUtil.get('http://localhost:5000/api/v1/getStaffList/0')
+        .then(res => res.text())
+        .then(
+            data => {
+                this.mAllData = data;
+                this.setState({
+                    mJobs: Const.jobs,
+                    mData: data,
+                });
+            }
+        ) */
+
     }
 
     componentDidMount() {
@@ -163,7 +175,7 @@ class StaffList extends React.Component {
 
                         <Form.Item style={{ marginRight: 20 }}>
                             <Select defaultValue={0} style={{ width: 160 }} onChange={value => this.handleFilterChange(value)}>
-                                {this.state.mJobs.map((job, index) => <Select.Option value={index} key={index+''}>{job}</Select.Option>)}
+                                {this.state.mJobs.map((job, index) => <Select.Option value={index} key={index + ''}>{job}</Select.Option>)}
                             </Select>
                         </Form.Item>
 
@@ -187,7 +199,7 @@ class StaffList extends React.Component {
                             <Input prefix={<Icon type="mail" style={styles.prefixIcon} />} placeholder="邮箱" />
                         </Form.Item>
 
-                        {this.state.smallSize && <br/>}
+                        {this.state.smallSize && <br />}
 
                         <Form.Item style={styles.searchItem}>
                             <Input prefix={<Icon type="qq" style={styles.prefixIcon} />} placeholder="QQ" />
