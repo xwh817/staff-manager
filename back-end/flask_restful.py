@@ -3,7 +3,7 @@
 # 使用flask提供restful接口 
 # 先安装依赖：pip install flask
 
-from flask import Flask
+from flask import Flask, render_template
 import DBUtil
 
 # Flask初始化参数尽量使用你的包名，这个初始化方式是官方推荐的，官方解释：http://flask.pocoo.org/docs/0.12/api/#flask.Flask
@@ -15,6 +15,10 @@ app = Flask(__name__)
 @app.route('/hello')
 def hello_world():
     return "Hello Flask!"
+
+@app.route('/react')
+def react():
+    return render_template('index.html')
 
 # api接口前缀
 apiPrefix = '/api/v1/'
