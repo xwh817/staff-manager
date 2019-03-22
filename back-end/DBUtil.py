@@ -18,60 +18,68 @@ mycursor = mydb.cursor()
  
 
 def addStaff(values):
-    sql = "INSERT INTO t_staff (name, job, company, education, gender, birth_year, hometown, marriage, phone, email, qq, wechat, experience, contact_logs) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+  sql = "INSERT INTO t_staff (name, job, company, education, gender, birth_year, hometown, marriage, phone, email, qq, wechat, experience, contact_logs) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
 
-    mycursor.execute(sql, values)
-    
-    mydb.commit()    # 数据表内容有更新，必须使用到该语句
-    
-    print(mycursor.rowcount, "记录插入成功。")
+  mycursor.execute(sql, values)
+  
+  mydb.commit()    # 数据表内容有更新，必须使用到该语句
+  
+  print(mycursor.rowcount, "记录插入成功。")
 
 
 def getStaffList(job):
-    where = ''
+  tableName = 't_staff'
+  where = ''
 
-    if job > 0:
-        where = ' where job=%d' % (job)
+  if job > 0:
+      where = ' where job=%d' % (job)
 
-    sql = "select * from t_staff" + where
-    print(sql)
-    
-    mycursor.execute(sql)
+  sql = "select * from %s%s" % (tableName, where)
+  print(sql)
 
-    listAll = mycursor.fetchall()     # fetchall() 获取所有记录
+  mycursor.execute(sql)
 
-    json_str = json.dumps(getFormatData('t_staff', listAll))
+  listAll = mycursor.fetchall()     # fetchall() 获取所有记录
 
-    return json_str
+  json_str = json.dumps(getFormatData(tableName, listAll))
+
+  return json_str
 
 
+'''
+  根据表结构将数据库查询到的结构转成json对象
+  需要从columns表中查到表的字段名，
+  注意order by ordinal_position保证返回的顺序和数据字段顺序一致
+'''
 def getFormatData(table, dateList):
-    
-    sql = "select column_name, column_type from information_schema.columns where table_schema ='%s' and table_name = '%s'" % (database, table)
-    print(sql)
-    
-    mycursor.execute(sql)
+  
+  sql = "select column_name, column_type from information_schema.columns \
+  where table_schema ='%s' and table_name = '%s' order by ordinal_position" % (database, table)
 
-    tableSchema = mycursor.fetchall()
-    print('tableSchema: ' , tableSchema)
+  print(sql)
+  
+  mycursor.execute(sql)
 
-    formatData = []
+  tableSchema = mycursor.fetchall()
+  print('tableSchema: ' , tableSchema)
 
-    for item in dateList:
-      staff = {}
+  formatData = []
 
-      i = 0
-      for columnName, columnType in tableSchema:
-        if (columnType==b'timestamp' or columnType==b'datetime'):
-          staff[columnName] = item[i].strftime('%Y-%m-%d %H:%M:%S')
-        else:
-          staff[columnName] = item[i]
-        i+=1
+  for item in dateList:
+    staff = {}
 
-      print('item: ' , staff)
-      formatData.append(staff)
+    i = 0
+    for columnName, columnType in tableSchema:
+      if (columnType==b'timestamp' or columnType==b'datetime'):
+        staff[columnName] = item[i].strftime('%Y-%m-%d %H:%M:%S')
+      else:
+        staff[columnName] = item[i]
+      i+=1
 
-    return formatData;
+    print('item: ' , staff)
+    formatData.append(staff)
+
+  return formatData
 
 
 def insertTestData():
@@ -85,5 +93,7 @@ def insertTestData():
 
 #addStaff()
 #insertTestData()
-#getStaffList(1)
+
+getStaffList(1)
+
 

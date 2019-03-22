@@ -1,10 +1,11 @@
 import React from 'react';
 import Const from './Const'
 import HttpUtil from './Utils/HttpUtil'
+import ApiUtil from './Utils/ApiUtil'
 
 
 import {
-    Table, Icon, Input, Select, Button, Form
+    Table, Icon, Input, Select, Button, Form, message,
 } from 'antd';
 
 import StaffInfoDialog from './StaffInfoDialog';
@@ -18,7 +19,7 @@ class StaffList extends React.Component {
         title: '职位',
         dataIndex: 'job',
         key: 'job',
-        render: (index) => (<span>{Const.jobs[index]}</span>)
+        render: (index) => (<span>{Const.jobs[index].name}</span>)
     }, {
         title: '公司',
         dataIndex: 'company',
@@ -27,7 +28,7 @@ class StaffList extends React.Component {
         title: '学历',
         dataIndex: 'education',
         key: 'education',
-        render: (index) => (<span>{Const.edus[index]}</span>)
+        render: (index) => (<span>{Const.edus[index].name}</span>)
     }, {
         title: '生年',
         dataIndex: 'birth_year',
@@ -63,12 +64,11 @@ class StaffList extends React.Component {
         key: 'logs',
     } */, {
         title: '编辑',
-        dataIndex: 'id',
         key: 'action',
         fixed: 'right',
-        render: (id) => (
+        render: (item) => (
             <span>
-                <Icon type="edit" onClick={id => this.showInfoDialog(id)} />
+                <Icon type="edit" onClick={() => this.showInfoDialog(item)} />
             </span>
         ),
     }];
@@ -78,11 +78,13 @@ class StaffList extends React.Component {
     state = {
         mJobs: [],
         mData: [],
+        jobSelected: 0,
         showInfoDialog: false,
         smallSize: false,
+        editingItem: null,
     };
 
-    getData() {
+    getTestData() {
         for (let i = 1; i <= 100; i++) {
             let jobIndex = Math.floor((Math.random() * (Const.jobs.length - 1)) + 1);
             let edu = Math.floor((Math.random() * (Const.edus.length - 1)));
@@ -104,29 +106,32 @@ class StaffList extends React.Component {
             }
 
             this.mAllData.push(staff);
-        } 
+        }
         this.setState({
             mJobs: Const.jobs,
             mData: this.mAllData,
         });
-        
+    }
 
-        /* HttpUtil.get('http://localhost:5000/api/v1/getStaffList/0')
-        .then(res => res.text())
-        .then(
-            data => {
-                this.mAllData = data;
-                this.setState({
-                    mJobs: Const.jobs,
-                    mData: data,
-                });
-            }
-        ) */
+    getData() {
+
+        HttpUtil.get(ApiUtil.API_GET_STAFF_LIST + this.state.jobSelected)
+            .then(
+                data => {
+                    this.mAllData = data;
+                    this.setState({
+                        mJobs: Const.jobs,
+                        mData: data,
+                    });
+                }
+            ).catch(error => {
+                message.error(error.message);
+            });
 
     }
 
     componentDidMount() {
-        this.getData();
+        this.getTestData();
         window.addEventListener('resize', this.handleWindowWidth);
     }
 
@@ -138,25 +143,49 @@ class StaffList extends React.Component {
         // 窗口太小时，菜单列换行
         let width = document.documentElement.clientWidth;
         console.log("window width: " + width);
-
-        let tableWidth = this.refs.table.clientWidth;
-        console.log("table width: " + tableWidth);
-
         this.setState({
-            smallSize: width < 1200,
+            smallSize: width < 1160,
         });
     }
 
-    showInfoDialog(id) {
+    showInfoDialog(item) {
+        if (item === undefined) {
+            item = {};
+        }
+
         this.setState({
             showInfoDialog: true,
+            editingItem: item,
         });
+    }
+
+    handleInfoDialogClose = (staff) => {
+        if (staff) {
+            if (staff.id) { // 修改
+                let datas = [...this.state.mData];
+                for (let i = 0; i < datas.length; i++) {
+                    if (datas[i].id === staff.id) {
+                        datas[i] = staff;
+                        this.setState({
+                            mData: datas,
+                            showInfoDialog: false,
+                        });
+                        break;
+                    }
+                }
+            } else {    // 新增
+
+            }
+        } else {    // 删除
+
+        }
     }
 
     handleFilterChange(value) {
         let items = this.mAllData.filter(item => item.job === value);
         this.setState({
             mData: items,
+            jobSelected: value,
         });
     }
 
@@ -165,32 +194,13 @@ class StaffList extends React.Component {
             <div>
                 <div>
 
-                    {/* <Input.Search
-                        placeholder="搜索"
-                        onSearch={value => console.log(value)}
-                        style={{ width: 200, marginLeft: 10 }}
-                    /> */}
-
                     <Form layout="inline" onSubmit={this.handleSubmit}>
 
                         <Form.Item style={{ marginRight: 20 }}>
-                            <Select defaultValue={0} style={{ width: 160 }} onChange={value => this.handleFilterChange(value)}>
-                                {this.state.mJobs.map((job, index) => <Select.Option value={index} key={index + ''}>{job}</Select.Option>)}
+                            <Select defaultValue={this.state.jobSelected} style={{ width: 160 }} onChange={value => this.handleFilterChange(value)}>
+                                {this.state.mJobs.map((item) => <Select.Option value={item.id} key={item.id + ''}>{item.id > 0 ? item.name : '所有职位'}</Select.Option>)}
                             </Select>
                         </Form.Item>
-
-                        {/* <Form.Item style={{ width: 160, marginRight: 4}}>
-                            <Input placeholder="搜索内容" />
-                        </Form.Item>
-                        <Form.Item style={{ width: 80}} >
-                            <Select defaultValue={1} style={{ width: 80 }} >
-                                <Select.Option value={1}>电话</Select.Option>
-                                <Select.Option value={2}>邮箱</Select.Option>
-                                <Select.Option value={3}>QQ</Select.Option>
-                                <Select.Option value={4}>微信</Select.Option>
-                            </Select>
-                        </Form.Item> */}
-
 
                         <Form.Item style={styles.searchItem}>
                             <Input prefix={<Icon type="mobile" style={styles.prefixIcon} />} placeholder="电话" />
@@ -222,7 +232,6 @@ class StaffList extends React.Component {
 
                 </div>
                 <Table
-                    ref="table"
                     style={{ marginTop: 10 }}
                     dataSource={this.state.mData}
                     columns={this.columns}
@@ -230,7 +239,9 @@ class StaffList extends React.Component {
 
                 <StaffInfoDialog
                     visible={this.state.showInfoDialog}
-                    afterClose={() => this.setState({ showInfoDialog: false })} />
+                    staff={this.state.editingItem}
+                    afterClose={() => this.setState({showInfoDialog: false})}
+                    onDialogConfirm={this.handleInfoDialogClose} />
 
             </div>
         )

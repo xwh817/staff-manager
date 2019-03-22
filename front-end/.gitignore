@@ -9,10 +9,8 @@
 /coverage
 
 # production
-/build/__pycache__
+/build
 
-# python
-/python/
 
 # misc
 .DS_Store
