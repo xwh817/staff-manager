@@ -13,7 +13,7 @@ export default class HttpUtil {
             .then(response => response.json())  // 将文本结果转成json对象
             .then(result => resolve(result))
             .catch(error => {
-                reject(error.message);
+                reject(error);
             })
         });
     }
@@ -35,7 +35,7 @@ export default class HttpUtil {
             .then(response => response.json())
             .then(result => resolve(result))
             .catch(error => {
-                reject(error.message);
+                reject(error);
             })
         });
     }

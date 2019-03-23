@@ -1,5 +1,6 @@
 import React from 'react';
 import Const from './Const'
+import ApiUtil from './Utils/ApiUtil'
 
 import {
     Table, Icon, Button, message, Modal
@@ -9,12 +10,12 @@ import {
 class JobList extends React.Component {
     columns = [{
         title: '序号',
-        dataIndex: 'index',
+        dataIndex: 'id',
         width: 80,
         align: 'center'
     }, {
         title: '职位',
-        dataIndex: 'job',
+        dataIndex: 'name',
     }, {
         title: '编辑',
         dataIndex: 'id',
@@ -32,7 +33,18 @@ class JobList extends React.Component {
     };
 
     getData() {
-        let mData = [];
+        HttpUtil.get(ApiUtil.API_JOB_LIST)
+            .then(
+                data => {
+                    this.setState({
+                        mJobs: data
+                    });
+                }
+            ).catch(error => {
+                message.error(error.message);
+            });
+
+        /* let mData = [];
         for (let i = 1; i < Const.jobs.length; i++) {
             let job = {
                 index: i,
@@ -45,14 +57,23 @@ class JobList extends React.Component {
 
         this.setState({
             mJobs: mData,
-        });
+        }); */
     }
 
     removeData(id) {
-        let jobs = this.state.mJobs.filter((item) => item.id !== id);
-        this.setState({
-            mJobs: jobs
-        });
+        HttpUtil.get(ApiUtil.API_JOB_DELETE + id)
+            .then(
+                re => {
+                    message.info(re.message);
+                    let jobs = this.state.mJobs.filter((item) => item.id !== id);
+                    this.setState({
+                        mJobs: jobs
+                    });
+                    
+                }
+            ).catch(error => {
+                message.error(error.message);
+            });
     }
 
     componentDidMount() {
@@ -75,27 +96,15 @@ class JobList extends React.Component {
     }
 
     showConfirm(id) {
-        var that = this;    // 进入new Promise里面this就不能用了，这里在外面存一下。
+        var that = this;    // 下面的内嵌对象里面，this就改变了，这里在外面存一下。
         const modal = Modal.confirm({
             title: '确认',
-            content: '确定要删除该条' + id + '记录吗？',
+            content: '确定要删除该职位吗？',
             okText: '确认',
             cancelText: '取消',
             onOk() {
-                return new Promise((resolve, reject) => {
-                    //this.removeData(id);
-                    let rdm = Math.random();
-                    console.log('test' + rdm);
-                    setTimeout(rdm > 0.5 ? resolve(rdm) : reject(rdm), 2000);
-                })
-                    .then((re) => {
-                        modal.destroy();
-                        message.info('删除成功!' + re);
-                        that.removeData(id);
-                    })
-                    .catch((re) => {
-                        message.error('操作失败，该职位已经有数据录入!' + re);
-                    });
+                that.removeData(id);
+                modal.destroy();
             },
             onCancel() { },
         });

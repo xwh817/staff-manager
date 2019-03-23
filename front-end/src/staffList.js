@@ -2,6 +2,7 @@ import React from 'react';
 import Const from './Const'
 import HttpUtil from './Utils/HttpUtil'
 import ApiUtil from './Utils/ApiUtil'
+import CommonValues from './Utils/CommonValues'
 
 
 import {
@@ -60,8 +61,8 @@ class StaffList extends React.Component {
         key: 'experience',
     }, {
         title: '联系记录',
-        dataIndex: 'logs',
-        key: 'logs',
+        dataIndex: 'contact_logs',
+        key: 'contact_logs',
     } */, {
         title: '编辑',
         key: 'action',
@@ -102,7 +103,7 @@ class StaffList extends React.Component {
                 qq: '67893456',
                 wechat: '1356789',
                 experience: '1 2 3',
-                logs: '12341234',
+                contact_logs: '12341234',
             }
 
             this.mAllData.push(staff);
@@ -114,24 +115,27 @@ class StaffList extends React.Component {
     }
 
     getData() {
-
-        HttpUtil.get(ApiUtil.API_GET_STAFF_LIST + this.state.jobSelected)
+        HttpUtil.get(ApiUtil.API_JOB_LIST)
             .then(
-                data => {
-                    this.mAllData = data;
+                jobList => {
+                    CommonValues.JOBS = jobList;
+                    HttpUtil.get(ApiUtil.API_GET_STAFF_LIST + this.state.jobSelected);
+                }
+            ).then( // 等待两次请求依次完成了才刷新界面
+                staffList => {
+                    this.mAllData = staffList;
                     this.setState({
-                        mJobs: Const.jobs,
-                        mData: data,
+                        mJobs: CommonValues.JOBS,
+                        mData: staffList,
                     });
                 }
             ).catch(error => {
                 message.error(error.message);
             });
-
     }
 
     componentDidMount() {
-        this.getTestData();
+        this.getData();
         window.addEventListener('resize', this.handleWindowWidth);
     }
 
@@ -182,7 +186,7 @@ class StaffList extends React.Component {
     }
 
     handleFilterChange(value) {
-        let items = this.mAllData.filter(item => item.job === value);
+        let items = value===0 ? this.mAllData : this.mAllData.filter(item => item.job === value);
         this.setState({
             mData: items,
             jobSelected: value,
@@ -196,11 +200,9 @@ class StaffList extends React.Component {
 
                     <Form layout="inline" onSubmit={this.handleSubmit}>
 
-                        <Form.Item style={{ marginRight: 20 }}>
-                            <Select defaultValue={this.state.jobSelected} style={{ width: 160 }} onChange={value => this.handleFilterChange(value)}>
-                                {this.state.mJobs.map((item) => <Select.Option value={item.id} key={item.id + ''}>{item.id > 0 ? item.name : '所有职位'}</Select.Option>)}
-                            </Select>
-                        </Form.Item>
+                        <Select style={{ width: 160, marginRight: 20, marginTop: 4}} defaultValue={this.state.jobSelected} onChange={value => this.handleFilterChange(value)}>
+                            {this.state.mJobs.map((item) => <Select.Option value={item.id} key={item.id + ''}>{item.id > 0 ? item.name : '所有职位'}</Select.Option>)}
+                        </Select>
 
                         <Form.Item style={styles.searchItem}>
                             <Input prefix={<Icon type="mobile" style={styles.prefixIcon} />} placeholder="电话" />
@@ -257,7 +259,6 @@ const styles = {
         color: 'rgba(0,0,0,.25)',
     },
 }
-
 
 
 export default StaffList;
