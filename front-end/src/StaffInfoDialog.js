@@ -1,9 +1,10 @@
 import React from 'react';
 import { Modal, Form, Icon, Input, InputNumber, Select, Button, Upload, message} from 'antd';
-import Const from './Const'
-import ApiUtil from './Utils/ApiUtil'
-import HttpUtil from './Utils/HttpUtil'
-const { TextArea } = Input;
+import CommonValues from './Utils/CommonValues';
+import Const from './Const';
+import ApiUtil from './Utils/ApiUtil';
+import HttpUtil from './Utils/HttpUtil';
+
 
 class StaffInfoDialog extends React.Component {
   state = {
@@ -76,7 +77,7 @@ class StaffInfoDialog extends React.Component {
   }
 
   handleDelete = () => {
-    HttpUtil.post(ApiUtil.API_STAFF_DELETE + this.state.staff.id)
+    HttpUtil.get(ApiUtil.API_STAFF_DELETE + this.state.staff.id)
             .then(
                 re => {
                   message.info(re.message);
@@ -99,7 +100,7 @@ class StaffInfoDialog extends React.Component {
     const { visible, confirmLoading, staff } = this.state;
 
     const {
-      getFieldDecorator, getFieldsError, getFieldError, isFieldTouched,
+      getFieldDecorator,
     } = this.props.form;
 
 
@@ -138,7 +139,7 @@ class StaffInfoDialog extends React.Component {
             <Form.Item label="职位" {...styles.formItemLayout}>
               {getFieldDecorator('job')(
                 <Select style={{ width: 140 }} onChange={value => console.log(value)}>
-                  {Const.jobs.map((item) => <Select.Option value={item.id} key={item.id + ''}>{item.name}</Select.Option>)}
+                  {CommonValues.JOBS.map((item) => <Select.Option value={item.id} key={item.id + ''}>{item.name}</Select.Option>)}
                 </Select>
               )}
 
@@ -193,13 +194,13 @@ class StaffInfoDialog extends React.Component {
 
             <Form.Item label="工作经历"  {...styles.formItemLayout}>
               {getFieldDecorator('experience')(
-                <TextArea placeholder="" autosize={{ minRows: 4, maxRows: 8 }} />
+                <Input.TextArea placeholder="" autosize={{ minRows: 4, maxRows: 8 }} />
               )}
             </Form.Item>
 
             <Form.Item label="联系记录"  {...styles.formItemLayout}>
               {getFieldDecorator('contact_logs')(
-                <TextArea placeholder="" autosize={{ minRows: 4, maxRows: 8 }} />
+                <Input.TextArea placeholder="" autosize={{ minRows: 4, maxRows: 8 }} />
               )}
             </Form.Item>
 

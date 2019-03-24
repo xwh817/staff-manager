@@ -5,6 +5,7 @@
 
 from flask import Flask, render_template, request
 import DBUtil
+import json
 
 # Flask初始化参数尽量使用你的包名，这个初始化方式是官方推荐的，官方解释：http://flask.pocoo.org/docs/0.12/api/#flask.Flask
 '''
@@ -43,6 +44,12 @@ def deleteStaff(id):
     re = DBUtil.deleteStaff(id)
     return re
 
+@app.route(apiPrefix + 'searchStaff')
+def searchStaff():
+    data = request.get_data(as_text=True)
+    where = json.loads(data)
+    re = DBUtil.searchStaff(where)
+    return re
 
 
 @app.route(apiPrefix + 'getJobList')

@@ -1,9 +1,8 @@
 import React from 'react';
+import CommonValues from './Utils/CommonValues'
 import Const from './Const'
 import HttpUtil from './Utils/HttpUtil'
 import ApiUtil from './Utils/ApiUtil'
-import CommonValues from './Utils/CommonValues'
-
 
 import {
     Table, Icon, Input, Select, Button, Form, message,
@@ -20,7 +19,7 @@ class StaffList extends React.Component {
         title: '职位',
         dataIndex: 'job',
         key: 'job',
-        render: (index) => (<span>{Const.jobs[index].name}</span>)
+        render: (index) => (<span>{CommonValues.JOBS[index] && CommonValues.JOBS[index].name}</span>)
     }, {
         title: '公司',
         dataIndex: 'company',
@@ -69,7 +68,7 @@ class StaffList extends React.Component {
         fixed: 'right',
         render: (item) => (
             <span>
-                <Icon type="edit" onClick={() => this.showInfoDialog(item)} />
+                <Icon type="edit" onClick={() => this.showUpdateDialog(item)} />
             </span>
         ),
     }];
@@ -85,43 +84,19 @@ class StaffList extends React.Component {
         editingItem: null,
     };
 
-    getTestData() {
-        for (let i = 1; i <= 100; i++) {
-            let jobIndex = Math.floor((Math.random() * (Const.jobs.length - 1)) + 1);
-            let edu = Math.floor((Math.random() * (Const.edus.length - 1)));
-            let staff = {
-                key: '' + i,
-                id: i,
-                name: '姓名-' + i,
-                job: jobIndex,
-                company: '公司-' + i,
-                birth_year: 85 + edu * 2,
-                education: edu,
-                hometown: '深圳',
-                phone: '13567893456',
-                email: 'test@163.com',
-                qq: '67893456',
-                wechat: '1356789',
-                experience: '1 2 3',
-                contact_logs: '12341234',
-            }
-
-            this.mAllData.push(staff);
-        }
-        this.setState({
-            mJobs: Const.jobs,
-            mData: this.mAllData,
-        });
-    }
-
     getData() {
         HttpUtil.get(ApiUtil.API_JOB_LIST)
             .then(
                 jobList => {
+                    jobList.unshift({
+                        'id':0,
+                        'name':''
+                    });
                     CommonValues.JOBS = jobList;
-                    HttpUtil.get(ApiUtil.API_GET_STAFF_LIST + this.state.jobSelected);
                 }
-            ).then( // 等待两次请求依次完成了才刷新界面
+            )
+            .then(() => HttpUtil.get(ApiUtil.API_STAFF_LIST + this.state.jobSelected))
+            .then( // 等待两次请求依次完成了才刷新界面
                 staffList => {
                     this.mAllData = staffList;
                     this.setState({
@@ -152,7 +127,7 @@ class StaffList extends React.Component {
         });
     }
 
-    showInfoDialog(item) {
+    showUpdateDialog (item){
         if (item === undefined) {
             item = {};
         }
@@ -193,46 +168,55 @@ class StaffList extends React.Component {
         });
     }
 
+    handleSearch = () => {
+
+    }
+
     render() {
         return (
             <div>
+
                 <div>
-
-                    <Form layout="inline" onSubmit={this.handleSubmit}>
-
-                        <Select style={{ width: 160, marginRight: 20, marginTop: 4}} defaultValue={this.state.jobSelected} onChange={value => this.handleFilterChange(value)}>
-                            {this.state.mJobs.map((item) => <Select.Option value={item.id} key={item.id + ''}>{item.id > 0 ? item.name : '所有职位'}</Select.Option>)}
-                        </Select>
-
-                        <Form.Item style={styles.searchItem}>
-                            <Input prefix={<Icon type="mobile" style={styles.prefixIcon} />} placeholder="电话" />
-                        </Form.Item>
-                        <Form.Item style={styles.searchItem}>
-                            <Input prefix={<Icon type="mail" style={styles.prefixIcon} />} placeholder="邮箱" />
-                        </Form.Item>
-
-                        {this.state.smallSize && <br />}
-
-                        <Form.Item style={styles.searchItem}>
-                            <Input prefix={<Icon type="qq" style={styles.prefixIcon} />} placeholder="QQ" />
-                        </Form.Item>
-                        <Form.Item style={styles.searchItem}>
-                            <Input prefix={<Icon type="wechat" style={styles.prefixIcon} />} placeholder="微信" />
-                        </Form.Item>
-                        <Form.Item>
-                            <Button
-                                type="primary"
-                                icon="search"
-                                htmlType="submit">搜索</Button>
-                        </Form.Item>
-
-
-                        <Form.Item style={{ float: 'right' }}>
-                            <Button type="primary" icon="plus" onClick={() => this.showInfoDialog()}>添加</Button>
-                        </Form.Item>
-                    </Form>
-
+                    <Select style={{ width: 160, marginRight: 20, marginTop: 4}} defaultValue={this.state.jobSelected} onChange={value => this.handleFilterChange(value)}>
+                        {this.state.mJobs.map((item) => <Select.Option value={item.id} key={item.id + ''}>{item.id > 0 ? item.name : '所有职位'}</Select.Option>)}
+                    </Select>
+                    <Input prefix={<Icon type="mobile" style={styles.prefixIcon} />} placeholder="电话" style={styles.searchItem}/>
+                    <Input prefix={<Icon type="mail" style={styles.prefixIcon} />} placeholder="邮箱" style={styles.searchItem}/>
+                    <Input prefix={<Icon type="qq" style={styles.prefixIcon} />} placeholder="QQ" style={styles.searchItem}/>
+                    <Input prefix={<Icon type="wechat" style={styles.prefixIcon} />} placeholder="微信" style={styles.searchItem}/>
+                    <Button type="primary" icon="search" onClick={this.handleSearch}>搜索</Button>
+                    <Button type="primary" icon="plus" onClick={() => this.showUpdateDialog()} style={{ float: 'right' }}>添加</Button>
                 </div>
+
+                {/* <Form layout="inline" onSubmit={this.handleSubmit}>
+
+                    <Form.Item style={styles.searchItem}>
+                        <Input prefix={<Icon type="mobile" style={styles.prefixIcon} />} placeholder="电话" />
+                    </Form.Item>
+                    <Form.Item style={styles.searchItem}>
+                        <Input prefix={<Icon type="mail" style={styles.prefixIcon} />} placeholder="邮箱" />
+                    </Form.Item>
+
+                    {this.state.smallSize && <br />}
+
+                    <Form.Item style={styles.searchItem}>
+                        <Input prefix={<Icon type="qq" style={styles.prefixIcon} />} placeholder="QQ" />
+                    </Form.Item>
+                    <Form.Item style={styles.searchItem}>
+                        <Input prefix={<Icon type="wechat" style={styles.prefixIcon} />} placeholder="微信" />
+                    </Form.Item>
+                    <Form.Item>
+                        <Button
+                            type="primary"
+                            icon="search"
+                            htmlType="submit">搜索</Button>
+                    </Form.Item>
+
+
+                    <Form.Item style={{ float: 'right' }}>
+                        <Button type="primary" icon="plus" onClick={() => this.showUpdateDialog()}>添加</Button>
+                    </Form.Item>
+                </Form> */}
                 <Table
                     style={{ marginTop: 10 }}
                     dataSource={this.state.mData}

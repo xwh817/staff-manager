@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "antd": "^3.15.1",
+    "mockjs": "^1.0.1-beta3",
     "react": "^16.8.4",
     "react-dom": "^16.8.4",
     "react-scripts": "2.1.8"
@@ -11,7 +12,7 @@
   "scripts": {
     "start": "react-scripts start",
     "prebuild": "rm -rf ../back-end/templates",
-    "prebuild-win":"if exist ..\\back-end\\front-build (rmdir ..\\back-end\\front-build /q/s)",
+    "prebuild-win": "if exist ..\\back-end\\front-build (rmdir ..\\back-end\\front-build /q/s)",
     "build": "react-scripts build",
     "postbuild-win": "move build ..\\back-end\\front-build",
     "postbuild": "mv build ../back-end/templates",
@@ -27,5 +28,6 @@
     "not ie <= 11",
     "not op_mini all"
   ],
-  "homepage": "./staff-manager/"
+  "homepage": "./staff-manager/",
+  "proxy": "http://localhost:5000"
 }
