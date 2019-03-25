@@ -39,7 +39,6 @@ class JobList extends React.Component {
             .then(
                 data => {
                     data.map((item, index) => {
-                        item.key = item.id + '';
                         item.index = index + 1;
                         return item;
                     });
@@ -50,21 +49,6 @@ class JobList extends React.Component {
             ).catch(error => {
                 message.error(error.message);
             });
-
-        /* let mData = [];
-        for (let i = 1; i < Const.jobs.length; i++) {
-            let job = {
-                index: i,
-                key: i,
-                id: i,
-                job: Const.jobs[i],
-            }
-            mData.push(job);
-        }
-
-        this.setState({
-            mJobs: mData,
-        }); */
     }
 
     removeData(id) {
@@ -94,22 +78,22 @@ class JobList extends React.Component {
                 <Table
                     style={{ marginTop: 10 }}
                     dataSource={this.state.mJobs}
+                    rowKey={item => item.id}
                     columns={this.columns}
                     pagination={false} />
                 
                 <Modal
-                title={this.state.job ? "修改职位" : "添加职位"}
+                title={this.state.job.id ? "修改职位" : "添加职位"}
                 okText="保存"
                 cancelText="取消"
                 visible={this.state.showAddDialog}
                 onOk={this.handleAdd}
                 onCancel={() => this.setState({showAddDialog:false})}>
-                    <input type='hidden' value={this.state.job.id}/>
-                    <input type='text'
-                    ref={inputName => {this.inputName = inputName}} 
+                    <Input type='text'
                     onChange={this.handleTextChanged} 
                     value={this.state.job.name}
                     placeholder="请输入职位名" />
+                    
                 </Modal>
             </div>
         )
@@ -117,11 +101,15 @@ class JobList extends React.Component {
 
     showUpdateDialog = (job) => {
         if (job === undefined) {
-            job = {};
+            job = {
+                id:0,
+                name:''
+            };
         }
+        let currentJob = Object.assign({}, this.state.job, job);     // 对象赋值，同时注意不要给state直接赋值，先追加到空对象{}
         this.setState({
             showAddDialog: true,
-            job:job
+            job:currentJob
         });
     }
 
@@ -152,10 +140,10 @@ class JobList extends React.Component {
 
     handleTextChanged = (e) => {
         //console.log(e.target.value);
+        // state元素为对象时赋值，同时注意不要给state直接赋值，先追加到空对象{}
+        let currentJob = Object.assign({}, this.state.job, {'name':e.target.value});
         this.setState({
-            job:{
-                'name':e.target.value
-            }
+            job:currentJob
         });
     }
     

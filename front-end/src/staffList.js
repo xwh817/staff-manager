@@ -1,11 +1,11 @@
 import React from 'react';
-import CommonValues from './Utils/CommonValues'
 import Const from './Const'
+import CommonValues from './Utils/CommonValues'
 import HttpUtil from './Utils/HttpUtil'
 import ApiUtil from './Utils/ApiUtil'
 
 import {
-    Table, Icon, Input, Select, Button, Form, message,
+    Table, Icon, Input, Select, Button, message,
 } from 'antd';
 
 import StaffInfoDialog from './StaffInfoDialog';
@@ -19,7 +19,7 @@ class StaffList extends React.Component {
         title: '职位',
         dataIndex: 'job',
         key: 'job',
-        render: (index) => (<span>{CommonValues.JOBS[index] && CommonValues.JOBS[index].name}</span>)
+        render: (index) => (<span>{CommonValues.JOBS.getById(index) && CommonValues.JOBS.getById(index).name}</span>)
     }, {
         title: '公司',
         dataIndex: 'company',
@@ -33,7 +33,8 @@ class StaffList extends React.Component {
         title: '生年',
         dataIndex: 'birth_year',
         key: 'birth_year',
-        align: 'center'
+        align: 'center',
+        render: (birth_year) => (<span>{birth_year > 0 ? birth_year : ''}</span>)
     }, {
         title: '籍贯',
         dataIndex: 'hometown',
@@ -65,10 +66,11 @@ class StaffList extends React.Component {
     } */, {
         title: '编辑',
         key: 'action',
-        fixed: 'right',
+        //fixed: 'right',
+        align: 'center',
         render: (item) => (
             <span>
-                <Icon type="edit" onClick={() => this.showUpdateDialog(item)} />
+                <Icon type="edit" title="编辑" onClick={() => this.showUpdateDialog(item)} style={styles.buttonIcon} />
             </span>
         ),
     }];
@@ -88,20 +90,24 @@ class StaffList extends React.Component {
         HttpUtil.get(ApiUtil.API_JOB_LIST)
             .then(
                 jobList => {
-                    jobList.unshift({
-                        'id':0,
-                        'name':''
-                    });
-                    CommonValues.JOBS = jobList;
+                    CommonValues.JOBS = [
+                        { 'id': 0, 'name': '' }
+                    ];
+                    CommonValues.JOBS.getById = function (id) {
+                        return CommonValues.JOBS.filter(job => job.id === id)[0]
+                    }
+                    jobList.map(job => CommonValues.JOBS.push(job))
                 }
             )
-            .then(() => HttpUtil.get(ApiUtil.API_STAFF_LIST + this.state.jobSelected))
+            .then(() => HttpUtil.get(ApiUtil.API_STAFF_LIST + 0))   // TODO:这个版本暂时取全部数据，后面完善
             .then( // 等待两次请求依次完成了才刷新界面
                 staffList => {
                     this.mAllData = staffList;
                     this.setState({
                         mJobs: CommonValues.JOBS,
                         mData: staffList,
+                        showInfoDialog: false,
+                        jobSelected: 0,
                     });
                 }
             ).catch(error => {
@@ -123,11 +129,11 @@ class StaffList extends React.Component {
         let width = document.documentElement.clientWidth;
         console.log("window width: " + width);
         this.setState({
-            smallSize: width < 1160,
+            smallSize: width < 1260,
         });
     }
 
-    showUpdateDialog (item){
+    showUpdateDialog(item) {
         if (item === undefined) {
             item = {};
         }
@@ -153,23 +159,47 @@ class StaffList extends React.Component {
                     }
                 }
             } else {    // 新增
-
+                this.getData();
             }
         } else {    // 删除
-
+            this.getData();
         }
     }
 
+
     handleFilterChange(value) {
-        let items = value===0 ? this.mAllData : this.mAllData.filter(item => item.job === value);
+        let items = value === 0 ? this.mAllData : this.mAllData.filter(item => item.job === value);
         this.setState({
             mData: items,
             jobSelected: value,
         });
     }
 
-    handleSearch = () => {
+    searchItems = {};
 
+    handleTextChange = (e) => {
+        let attr = e.target.getAttribute('item');
+        if (attr) {
+            this.searchItems[attr] = e.target.value;
+            console.log(attr + ":" + e.target.value);
+        }
+    }
+    handleSearch = () => {
+        let where = JSON.stringify(this.searchItems);
+        let url = ApiUtil.API_STAFF_SEARCH + "?where=" + encodeURI(where);
+        HttpUtil.get(url)
+            .then( // 等待两次请求依次完成了才刷新界面
+                staffList => {
+                    this.mAllData = staffList;
+                    this.setState({
+                        mData: staffList,
+                        showInfoDialog: false,
+                        jobSelected: 0,
+                    });
+                }
+            ).catch(error => {
+                message.error(error.message);
+            });
     }
 
     render() {
@@ -177,15 +207,17 @@ class StaffList extends React.Component {
             <div>
 
                 <div>
-                    <Select style={{ width: 160, marginRight: 20, marginTop: 4}} defaultValue={this.state.jobSelected} onChange={value => this.handleFilterChange(value)}>
+                    <Select style={{ width: 160, marginRight: 20, marginTop: 4 }} defaultValue={this.state.jobSelected} onChange={value => this.handleFilterChange(value)}>
                         {this.state.mJobs.map((item) => <Select.Option value={item.id} key={item.id + ''}>{item.id > 0 ? item.name : '所有职位'}</Select.Option>)}
                     </Select>
-                    <Input prefix={<Icon type="mobile" style={styles.prefixIcon} />} placeholder="电话" style={styles.searchItem}/>
-                    <Input prefix={<Icon type="mail" style={styles.prefixIcon} />} placeholder="邮箱" style={styles.searchItem}/>
-                    <Input prefix={<Icon type="qq" style={styles.prefixIcon} />} placeholder="QQ" style={styles.searchItem}/>
-                    <Input prefix={<Icon type="wechat" style={styles.prefixIcon} />} placeholder="微信" style={styles.searchItem}/>
+                    <Input placeholder="姓名" item="name" prefix={<Icon type="user" style={styles.prefixIcon} />} style={styles.searchItem} onChange={this.handleTextChange} />
+                    <Input placeholder="电话" item="phone" prefix={<Icon type="mobile" style={styles.prefixIcon} />} style={styles.searchItem} onChange={this.handleTextChange} />
+                    <Input placeholder="邮箱" item="email" prefix={<Icon type="mail" style={styles.prefixIcon} />} style={styles.searchItem} onChange={this.handleTextChange} />
+                    {this.state.smallSize && <br />}
+                    <Input placeholder="QQ" item="qq" prefix={<Icon type="qq" style={styles.prefixIcon} />} style={styles.searchItem} onChange={this.handleTextChange} />
+                    <Input placeholder="微信" item="wechat" prefix={<Icon type="wechat" style={styles.prefixIcon} />} style={styles.searchItem} onChange={this.handleTextChange} />
                     <Button type="primary" icon="search" onClick={this.handleSearch}>搜索</Button>
-                    <Button type="primary" icon="plus" onClick={() => this.showUpdateDialog()} style={{ float: 'right' }}>添加</Button>
+                    <Button type="primary" icon="plus" onClick={() => this.showUpdateDialog()} style={{ float: 'right', marginTop: 4 }}>添加</Button>
                 </div>
 
                 {/* <Form layout="inline" onSubmit={this.handleSubmit}>
@@ -220,13 +252,14 @@ class StaffList extends React.Component {
                 <Table
                     style={{ marginTop: 10 }}
                     dataSource={this.state.mData}
+                    rowKey={item => item.id}
                     columns={this.columns}
-                    scroll={{ x: 800 }} />
+                    scroll={{ x: 1000 }} />
 
                 <StaffInfoDialog
                     visible={this.state.showInfoDialog}
                     staff={this.state.editingItem}
-                    afterClose={() => this.setState({showInfoDialog: false})}
+                    afterClose={() => this.setState({ showInfoDialog: false })}
                     onDialogConfirm={this.handleInfoDialogClose} />
 
             </div>
@@ -237,10 +270,14 @@ class StaffList extends React.Component {
 const styles = {
     searchItem: {
         width: 132,
+        marginTop: 4,
         marginRight: 6,
     },
     prefixIcon: {
         color: 'rgba(0,0,0,.25)',
+    },
+    buttonIcon: {
+        padding: 6,
     },
 }
 

@@ -4,7 +4,8 @@
 # 先安装依赖：pip install flask
 
 from flask import Flask, render_template, request
-import DBUtil
+import db.SqliteUtil as DBUtil
+
 import json
 
 # Flask初始化参数尽量使用你的包名，这个初始化方式是官方推荐的，官方解释：http://flask.pocoo.org/docs/0.12/api/#flask.Flask
@@ -13,7 +14,8 @@ import json
     static_folder 静态文件根目录（图片、css、js等）
     static_url_path url访问时根目录对应的path，可以自己改，映射到static_folder。和package.json里的homepage对应
 '''
-app = Flask(__name__, static_folder="templates",static_url_path="/staff-manager")
+#app = Flask(__name__, static_folder="templates",static_url_path="/staff-manager")
+app = Flask(__name__, template_folder='front-build', static_folder="front-build",static_url_path="/staff-manager")
 
 
 # hello
@@ -46,10 +48,12 @@ def deleteStaff(id):
 
 @app.route(apiPrefix + 'searchStaff')
 def searchStaff():
-    data = request.get_data(as_text=True)
+    data = request.args.get('where')
+    print("searchStaff:", data);
     where = json.loads(data)
     re = DBUtil.searchStaff(where)
     return re
+
 
 
 @app.route(apiPrefix + 'getJobList')

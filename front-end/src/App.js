@@ -2,10 +2,10 @@ import React, { Component } from 'react';
 
 import 'antd/dist/antd.css';
 import './App.css';
-import logo from './logo.svg';
+import myIcon from './images/icon.jpg';
 
 import {
-  Layout, Menu, Icon,
+  Layout, Menu, Icon, Avatar,
 } from 'antd';
 
 import StaffList from './staffList';
@@ -44,8 +44,8 @@ class App extends Component {
           collapsed={this.state.collapsed}
           onCollapse={this.onCollapse}
         >
-          <div className="logo" style={{height:80,backgroundColor:"#333333", textAlign: 'center'}}>
-            <img src={logo} alt='' style={{width:50, height:50, marginTop:15}}/>
+          <div className="logo" style={{height:80,backgroundColor:"#002140", textAlign: 'center'}}>
+            <Avatar src={myIcon} alt='' style={{width:60, height:60, marginTop:10}}/>
           </div>
 
           <Menu theme="dark" defaultSelectedKeys={[this.state.currentPage]} mode="inline" onSelect={({key}) => this.setState({currentPage:key})}>
@@ -68,8 +68,8 @@ class App extends Component {
               {pageView}
             </div>
           </Content>
-          <Footer style={{ textAlign: 'center' }}>
-            Ant Design ©2018 Created by Ant UED
+          <Footer style={{ textAlign: 'center'}}>
+            Loving you forever ©2019 Created by XWH
           </Footer>
         </Layout>
       </Layout>

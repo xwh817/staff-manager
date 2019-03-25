@@ -12,6 +12,7 @@ class StaffInfoDialog extends React.Component {
     confirmLoading: false,
     staff: {},
     mJobs: [],
+    deleteConfirm: false,
   }
 
   componentDidMount() {
@@ -24,6 +25,7 @@ class StaffInfoDialog extends React.Component {
       this.setState({
         visible: true,
         staff: newProps.staff,
+        deleteConfirm: false,
       });
     }
   }
@@ -77,6 +79,13 @@ class StaffInfoDialog extends React.Component {
   }
 
   handleDelete = () => {
+    if (!this.state.deleteConfirm) {
+      this.setState({
+        deleteConfirm: true
+      });
+      return;
+    }
+
     HttpUtil.get(ApiUtil.API_STAFF_DELETE + this.state.staff.id)
             .then(
                 re => {
@@ -84,6 +93,7 @@ class StaffInfoDialog extends React.Component {
                   this.setState({
                     visible: false,
                   });
+                  this.props.onDialogConfirm(undefined);
                 }
             ).catch(error => {
                 message.error(error.message);
@@ -161,7 +171,7 @@ class StaffInfoDialog extends React.Component {
 
             <Form.Item label="出生年" {...styles.formItemLayout}>
               {getFieldDecorator('birth_year')(
-                <InputNumber placeholder="年份" />
+                <InputNumber placeholder="年份" formatter={value => value > 0 ? value+'' : ''} />
               )}
             </Form.Item>
 
@@ -218,7 +228,7 @@ class StaffInfoDialog extends React.Component {
                   type="danger"
                   icon="delete"
                   onClick={this.handleDelete}
-                  style={{ width: 500 }}>删除</Button>
+                  style={{ width: 500 }}>{this.state.deleteConfirm ? '删除' + this.state.staff.name + '吗？ 请再点一次确认操作。' : '删除'}</Button>
               </Form.Item>
             }
             

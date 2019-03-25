@@ -19,6 +19,7 @@ mycursor = mydb.cursor()
 
 def addOrUpdateStaff(json_str):
   try:
+    print(json_str)
     staff = json.loads(json_str)
     id = staff.get('id', 0)
     result = ''
@@ -30,7 +31,7 @@ def addOrUpdateStaff(json_str):
         staff.get('company', ''),
         staff.get('education', 0),
         staff.get('gender', ''),
-        staff.get('birth_year', ''),
+        staff.get('birth_year', 0),
         staff.get('hometown', ''),
         staff.get('marriage', 0),
         staff.get('phone', ''),
@@ -45,11 +46,13 @@ def addOrUpdateStaff(json_str):
       print(sql)
       mycursor.execute(sql, values)
       result = '添加成功'
-      print(mycursor.rowcount, result)
+      print(result,"ID:", mycursor.lastrowid)
     else:   # 修改
       update = ''
       isFirst = True
       for key, value in staff.items():
+        if key == 'id':
+          continue
         if isFirst:
           isFirst = False
         else:
@@ -99,6 +102,20 @@ def deleteStaff(id):
     return json.dumps(re)
   
 
+def getJsonStaffsFromDB(dateList):
+  columns = ('id','name', 'job', 'company', 'education', 'gender', 'birth_year', 
+  'hometown', 'marriage', 'phone', 'email', 'qq', 'wechat', 'experience', 'contact_logs')
+
+  staffs = []
+  for item in dateList:
+    staff = {}
+    for index, column in enumerate(columns):
+      staff[column] = item[index]
+    staffs.append(staff)
+
+  json_str = json.dumps(staffs)
+  return json_str  
+  
 
 def getStaffList(job):
   tableName = 't_staff'
@@ -113,41 +130,45 @@ def getStaffList(job):
 
   mycursor.execute(sql)
 
-  listAll = mycursor.fetchall()     # fetchall() 获取所有记录
+  dateList = mycursor.fetchall()     # fetchall() 获取所有记录
 
-  json_str = json.dumps(getFormatData(tableName, listAll))
+  #json_str = json.dumps(getFormatData(tableName, dateList))
+  json_str = getJsonStaffsFromDB(dateList)
   print(json_str)
 
   return json_str
 
 
 def searchStaff(where):
-  tableName = 't_staff'
+  try:
+    sql_where = ''
+    isFirst = True
+    for key,value in where.items():
+      if value and len(value.strip()) > 0:
+        if isFirst:
+          sql_where += ' where '
+          isFirst = False
+        else:
+          sql_where += ' or '
 
-  sql_where = ''
-  isFirst = True
-  for key,value in where.items():
-    if value:
-      if isFirst:
-        isFirst = False
-      else:
-        sql_where += ' or '
+        sql_where += (key + " like '%"+value+"%'")
 
-      sql_where += (key + " like '%"+value+"%'")
+    order = ' order by id desc'
+    sql = "select * from t_staff %s%s" % (sql_where, order)
+    print(sql)
 
-  order = ' order by id desc'
-  sql = "select * from %s where %s%s" % (tableName, sql_where, order)
-  print(sql)
+    mycursor.execute(sql)
 
-  mycursor.execute(sql)
+    dateList = mycursor.fetchall()     # fetchall() 获取所有记录
 
-  listAll = mycursor.fetchall()     # fetchall() 获取所有记录
+    #json_str = json.dumps(getFormatData(tableName, dateList))
+    json_str = getJsonStaffsFromDB(dateList)
+    print(json_str)
 
-  json_str = json.dumps(getFormatData(tableName, listAll))
-  print(json_str)
-
-  return json_str
-
+    return json_str
+  except Exception as e:
+    print(str(e))
+    return '[]'
 
 '''
   根据表结构将数据库查询到的结构转成json对象
@@ -171,8 +192,8 @@ def getFormatData(table, dateList):
 
     i = 0
     for columnName, columnType in tableSchema:
-      #if (columnType==b'timestamp' or columnType==b'datetime'):
-      if (columnType=='timestamp' or columnType=='datetime'):
+      if (columnType==b'timestamp' or columnType==b'datetime'):
+      #if (columnType=='timestamp' or columnType=='datetime'):
         staff[columnName] = item[i].strftime('%Y-%m-%d %H:%M:%S')
       else:
         staff[columnName] = item[i]
@@ -212,18 +233,18 @@ def addOrUpdateJob(json_str):
   try:
     job = json.loads(json_str)
     id = job.get('id', 0)
-    name = job.get('name', ''),
+    name = job.get('name', '')
     result = ''
 
     if id == 0:  # 新增
-      sql = "insert into t_job (name) VALUES (%s)"
-      values = (name)
+      sql = "insert into t_job (name) VALUES ('%s')" % (name)
+      #values = (name)
       print(sql)
-      mycursor.execute(sql, values)
+      mycursor.execute(sql)
       result = '添加成功'
       print(mycursor.rowcount, result)
     else:   # 修改
-      sql = "update t_staff set name='%s' where id=%d" % (name, id)
+      sql = "update t_job set name='%s' where id=%d" % (name, id)
       print(sql)
       mycursor.execute(sql)
       result = '更新成功'
@@ -240,6 +261,7 @@ def addOrUpdateJob(json_str):
       'code':-1,
       'message':str(e)
     }
+    print(str)
     return json.dumps(re)
 
 
@@ -285,10 +307,13 @@ def insertTestData():
 
 #getJobList()
 
+#addOrUpdateJob('{"name": "test23", "id": 8, "key": "8", "index": 8}')
+
+#addOrUpdateStaff('{"name": "test54455"}')
+
 """ where={
+  'phone' : '  ',
   'qq':'5403',
   'wechat':'5566',
-  'phone' : '8866'
 }
 searchStaff(where) """
-
