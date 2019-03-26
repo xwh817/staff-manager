@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 # 使用flask提供restful接口
 # 先安装依赖：pip install flask
@@ -17,8 +18,7 @@ upload_root_dir = 'uploads'
     static_url_path url访问时根目录对应的path，可以自己改，映射到static_folder。和package.json里的homepage对应
 '''
 #app = Flask(__name__, static_folder="templates",static_url_path="/staff-manager")
-app = Flask(__name__, template_folder='front-build',
-            static_folder="front-build", static_url_path="/staff-manager")
+app = Flask(__name__, template_folder='front-build', static_folder="front-build", static_url_path="/staff-manager")
 
 
 # hello
