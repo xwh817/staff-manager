@@ -138,6 +138,7 @@ def addOrUpdateStaff(json_str):
     staff = json.loads(json_str)
     id = staff.get('id', 0)
     result = ''
+    newId = id
 
     if id == 0:  # 新增
       values = (
@@ -161,7 +162,8 @@ def addOrUpdateStaff(json_str):
       print(sql)
       cursor.execute(sql)
       result = '添加成功'
-      print(result,"ID:", cursor.lastrowid)
+      newId = cursor.lastrowid
+      print(result,"newId:", newId)
     else:   # 修改
       update = ''
       isFirst = True
@@ -187,15 +189,16 @@ def addOrUpdateStaff(json_str):
     conn.commit()
     re = {
       'code':0,
+      'id':newId,
       'message':result
     }
-    return json.dumps(re)
+    return re
   except Exception as e:
     re = {
       'code':-1,
       'message':str(e)
     }
-    return json.dumps(re)
+    return re
 
 
 def deleteStaff(id):
@@ -226,6 +229,7 @@ def getJsonStaffsFromDB(dateList):
     staff = {}
     for index, column in enumerate(columns):
       staff[column] = item[index]
+    
     staffs.append(staff)
 
   json_str = json.dumps(staffs)

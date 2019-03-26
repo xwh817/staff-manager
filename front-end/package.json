@@ -11,11 +11,11 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "prebuild": "rm -rf ../back-end/templates",
-    "prebuild-win": "if exist ..\\back-end\\front-build (rmdir ..\\back-end\\front-build /q/s)",
+    "prebuild-linux": "rm -rf ../back-end/templates",
+    "prebuild": "if exist ..\\back-end\\front-build (rmdir ..\\back-end\\front-build /q/s)",
     "build": "react-scripts build",
-    "postbuild-win": "move build ..\\back-end\\front-build",
-    "postbuild": "mv build ../back-end/templates",
+    "postbuild": "move build ..\\back-end\\front-build",
+    "postbuild-linux": "mv build ../back-end/templates",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -29,5 +29,5 @@
     "not op_mini all"
   ],
   "homepage": "./staff-manager/",
-  "proxy": "http://localhost:5000"
+  "proxy": "http://127.0.0.1:5000"
 }

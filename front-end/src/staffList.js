@@ -138,6 +138,8 @@ class StaffList extends React.Component {
             item = {};
         }
 
+        // state元素为对象时赋值，同时注意不要给state直接赋值，先追加到空对象{}
+        //let currentStaff = Object.assign({}, this.state.staff, item);
         this.setState({
             showInfoDialog: true,
             editingItem: item,

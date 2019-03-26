@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, Form, Icon, Input, InputNumber, Select, Button, Upload, message} from 'antd';
+import { Modal, Form, Icon, Input, InputNumber, Select, Button, Upload, message } from 'antd';
 import CommonValues from './Utils/CommonValues';
 import Const from './Const';
 import ApiUtil from './Utils/ApiUtil';
@@ -13,15 +13,12 @@ class StaffInfoDialog extends React.Component {
     staff: {},
     mJobs: [],
     deleteConfirm: false,
-  }
-
-  componentDidMount() {
-    this.getData();
+    fileList: [],
   }
 
   componentWillReceiveProps(newProps) {
-
     if (newProps.visible) {
+      this.getFileList(newProps.staff.id);
       this.setState({
         visible: true,
         staff: newProps.staff,
@@ -31,8 +28,26 @@ class StaffInfoDialog extends React.Component {
   }
 
 
-  getData() {
-
+  getFileList(id) {
+    if (id) {
+      HttpUtil.get(ApiUtil.API_FILE_GET_LIST + id)
+      .then(
+        array => {
+          let fileList = array.map((file, index) => {
+            return {
+              uid: '' + index,
+              name: file,
+              status: 'done',
+              url: (`${ApiUtil.URL_IP + ApiUtil.API_FILE_GET}/${id}/${file}`)
+            }
+          })
+          console.info('getFileList:' + array.length);
+          this.setState({fileList: fileList});
+        }
+      ).catch(error => {
+        message.error(error.message);
+      });
+    }
   }
 
 
@@ -47,13 +62,13 @@ class StaffInfoDialog extends React.Component {
 
 
         HttpUtil.post(ApiUtil.API_STAFF_UPDATE, values)
-            .then(
-                re => {
-                  message.info(re.message);
-                }
-            ).catch(error => {
-                message.error(error.message);
-            });
+          .then(
+            re => {
+              message.info(re.message);
+            }
+          ).catch(error => {
+            message.error(error.message);
+          });
 
         console.log('Received values of form: ', values);
         setTimeout(() => {
@@ -61,14 +76,14 @@ class StaffInfoDialog extends React.Component {
             visible: false,
             confirmLoading: false,
           });
-    
+
           this.props.onDialogConfirm(values);
-    
+
         }, 1000);
       }
     });
 
-    
+
   }
 
   handleCancel = () => {
@@ -76,6 +91,12 @@ class StaffInfoDialog extends React.Component {
     this.setState({
       visible: false,
     });
+    HttpUtil.get(ApiUtil.API_FILE_DELETE_DIR + 0) // 取消时删除临时上传文件目录
+      .then(
+
+      ).catch(error => {
+        message.error(error.message);
+      });
   }
 
   handleDelete = () => {
@@ -87,22 +108,46 @@ class StaffInfoDialog extends React.Component {
     }
 
     HttpUtil.get(ApiUtil.API_STAFF_DELETE + this.state.staff.id)
-            .then(
-                re => {
-                  message.info(re.message);
-                  this.setState({
-                    visible: false,
-                  });
-                  this.props.onDialogConfirm(undefined);
-                }
-            ).catch(error => {
-                message.error(error.message);
-            });
+      .then(
+        re => {
+          message.info(re.message);
+          this.setState({
+            visible: false,
+          });
+          this.props.onDialogConfirm(undefined);
+        }
+      ).catch(error => {
+        message.error(error.message);
+      });
   }
 
   handleSubmit = (e) => {
     e.preventDefault();
     console.log("handleSubmit");
+  }
+
+  handleFileChange = (info) => {
+    console.log('handleFileChange:' + info.file.status + ",info.fileList:" + info.fileList.length);
+    /* if (info.file.status !== 'uploading') {
+      console.log(info.file, info.fileList);
+    } */
+    if (info.file.status === 'done') {
+      message.success(`${info.file.name} 文件上传成功`);
+    } else if (info.file.status === 'error') {
+      message.error(`${info.file.name} 文件上传失败`);
+    } else if (info.file.status === 'removed') {
+      //message.warn(`${info.file.name} 文件删除中……`);
+      HttpUtil.get(`${ApiUtil.API_FILE_DELETE}/${this.state.staff.id}/${info.file.name}`)
+      .then(
+        re => {
+          message.info(re.code===0 ? '文件删除成功':'文件删除失败');
+        }
+      ).catch(error => {
+        message.error(error.message);
+      });
+    }
+    // 这里是一个大坑啊，每次要手动更新fileList,不然界面不更新
+    this.setState({fileList:info.fileList});
   }
 
 
@@ -171,7 +216,7 @@ class StaffInfoDialog extends React.Component {
 
             <Form.Item label="出生年" {...styles.formItemLayout}>
               {getFieldDecorator('birth_year')(
-                <InputNumber placeholder="年份" formatter={value => value > 0 ? value+'' : ''} />
+                <InputNumber placeholder="年份" formatter={value => value > 0 ? value + '' : ''} />
               )}
             </Form.Item>
 
@@ -185,7 +230,7 @@ class StaffInfoDialog extends React.Component {
               {getFieldDecorator('phone')(
                 <Input prefix={<Icon type="mobile" style={{ color: 'rgba(0,0,0,.25)' }} />} />
               )}
-              </Form.Item>
+            </Form.Item>
             <Form.Item label="邮箱" {...styles.formItemLayout}>
               {getFieldDecorator('email')(
                 <Input prefix={<Icon type="mail" style={{ color: 'rgba(0,0,0,.25)' }} />} />
@@ -214,13 +259,17 @@ class StaffInfoDialog extends React.Component {
               )}
             </Form.Item>
 
-            <Form.Item label="附件" {...styles.formItemLayout} extra='已上传文件：'>
-              <Upload name="logo" action="/upload.do" listType="picture">
-                <Button>
-                  <Icon type="upload" /> 选择附件上传
-              </Button>
-              </Upload>
+            <Form.Item label="附件" {...styles.formItemLayout} >
+                <Upload name="file"
+                  action={ApiUtil.API_FILE_UPLOAD}
+                  onChange={this.handleFileChange}
+                  fileList={this.state.fileList} >
+                  <Button>
+                    <Icon type="upload" /> 选择附件上传
+                </Button>
+                </Upload>
             </Form.Item>
+
 
             {
               staff.id > 0 && <Form.Item wrapperCol={{ span: 16, offset: 4 }}>
@@ -231,9 +280,10 @@ class StaffInfoDialog extends React.Component {
                   style={{ width: 500 }}>{this.state.deleteConfirm ? '删除' + this.state.staff.name + '吗？ 请再点一次确认操作。' : '删除'}</Button>
               </Form.Item>
             }
-            
+
 
           </Form>
+
 
 
         </div>

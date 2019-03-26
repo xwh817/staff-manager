@@ -16,4 +16,10 @@ export default class ApiUtil {
     static API_JOB_UPDATE = ApiUtil.URL_ROOT + '/updateJob';
     static API_JOB_DELETE = ApiUtil.URL_ROOT + '/deleteJob/';
 
+    static API_FILE_UPLOAD = ApiUtil.URL_ROOT + '/fileUpload';
+    static API_FILE_DELETE = ApiUtil.URL_ROOT + '/fileDelete';
+    static API_FILE_DELETE_DIR = ApiUtil.URL_ROOT + '/fileDeleteDir/';
+    static API_FILE_GET = ApiUtil.URL_ROOT + '/fileGet';
+    static API_FILE_GET_LIST = ApiUtil.URL_ROOT + '/fileGetList/';
+
 }
