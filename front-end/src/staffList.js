@@ -5,16 +5,32 @@ import HttpUtil from './Utils/HttpUtil'
 import ApiUtil from './Utils/ApiUtil'
 
 import {
-    Table, Icon, Input, Select, Button, message,
+    Table, Icon, Input, Select, Button, message,Popover, Divider
 } from 'antd';
 
 import StaffInfoDialog from './StaffInfoDialog';
 
 class StaffList extends React.Component {
+
+    getPopoverInfo = (staff) => (
+        <div style={{whiteSpace: 'pre-wrap', minWidth:200, maxWidth:800, maxHeight:600, overflow:'auto'}}>
+            <div style={{fontWeight:'bold',display:'block'}}>工作经历：</div>
+            {/* <Input.TextArea placeholder="" autosize={{ minRows: 4, maxRows: 8 }} value={staff.experience}/> */}
+            <div style={{marginLeft:12, lineHeight:2}}>{staff.experience ? staff.experience: '无'}</div>
+            <Divider dashed style={{marginTop:4,marginBottom:8}}/>
+            <div style={{fontWeight:'bold',display:'block'}}>联系记录：</div>
+            <div style={{marginLeft:12, lineHeight:2}}>{staff.contact_logs ? staff.contact_logs : '无'}</div>
+        </div>
+    );
+
     columns = [{
         title: '姓名',
-        dataIndex: 'name',
         key: 'name',
+        render: (staff) => (
+            <Popover placement="right" content={this.getPopoverInfo(staff)} >
+                {staff.name}
+            </Popover>
+        ),
     }, {
         title: '职位',
         dataIndex: 'job',
@@ -222,35 +238,6 @@ class StaffList extends React.Component {
                     <Button type="primary" icon="plus" onClick={() => this.showUpdateDialog()} style={{ float: 'right', marginTop: 4 }}>添加</Button>
                 </div>
 
-                {/* <Form layout="inline" onSubmit={this.handleSubmit}>
-
-                    <Form.Item style={styles.searchItem}>
-                        <Input prefix={<Icon type="mobile" style={styles.prefixIcon} />} placeholder="电话" />
-                    </Form.Item>
-                    <Form.Item style={styles.searchItem}>
-                        <Input prefix={<Icon type="mail" style={styles.prefixIcon} />} placeholder="邮箱" />
-                    </Form.Item>
-
-                    {this.state.smallSize && <br />}
-
-                    <Form.Item style={styles.searchItem}>
-                        <Input prefix={<Icon type="qq" style={styles.prefixIcon} />} placeholder="QQ" />
-                    </Form.Item>
-                    <Form.Item style={styles.searchItem}>
-                        <Input prefix={<Icon type="wechat" style={styles.prefixIcon} />} placeholder="微信" />
-                    </Form.Item>
-                    <Form.Item>
-                        <Button
-                            type="primary"
-                            icon="search"
-                            htmlType="submit">搜索</Button>
-                    </Form.Item>
-
-
-                    <Form.Item style={{ float: 'right' }}>
-                        <Button type="primary" icon="plus" onClick={() => this.showUpdateDialog()}>添加</Button>
-                    </Form.Item>
-                </Form> */}
                 <Table
                     style={{ marginTop: 10 }}
                     dataSource={this.state.mData}
