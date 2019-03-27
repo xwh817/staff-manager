@@ -35,12 +35,3 @@ CREATE TABLE IF NOT EXISTS `t_staff`(
 
 -- alter table t_staff add constraint fk_staff_job foreign key job references t_job(id);
 
-
-insert into t_staff(name, job, company, education, gender, birth_year, hometown, marriage, 
-phone, email, qq, wechat, experience, contact_logs)
- values(
-'范先生',1,'深圳新思',3,'男',87,'广东',0,
-'13760798503','test@163.com','969853979','',
-'11年本科毕业，2010.12 - 2013.07汇丰、2013.07 – 至今深圳市网新新思',
-'15.1.12已经跳槽去了一家上市公司。'
-);

@@ -10,6 +10,7 @@ import {
 
 import StaffList from './staffList';
 import JobList from './jobList';
+import DataManager from './DataManager';
 
 
 const {
@@ -32,6 +33,8 @@ class App extends Component {
     let pageView;
     if (this.state.currentPage === '2') {
       pageView = <JobList/>;
+    } else if (this.state.currentPage === '3') {
+      pageView = <DataManager/>;
     } else {
       pageView = <StaffList/>;
     }
@@ -56,6 +59,10 @@ class App extends Component {
             <Menu.Item key="2">
               <Icon type="cluster" />
               <span>职位管理</span>
+            </Menu.Item>
+            <Menu.Item key="3">
+              <Icon type="database" />
+              <span>数据管理</span>
             </Menu.Item>
           </Menu>
         </Sider>

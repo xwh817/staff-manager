@@ -18,7 +18,11 @@ class StaffInfoDialog extends React.Component {
 
   componentWillReceiveProps(newProps) {
     if (newProps.visible) {
-      this.getFileList(newProps.staff.id);
+      
+      if (this.state.staff.id !==newProps.staff.id) {
+        this.getFileList(newProps.staff.id);
+      }
+
       this.setState({
         visible: true,
         staff: newProps.staff,
@@ -29,6 +33,7 @@ class StaffInfoDialog extends React.Component {
 
 
   getFileList(id) {
+
     if (id) {
       HttpUtil.get(ApiUtil.API_FILE_GET_LIST + id)
       .then(
@@ -223,6 +228,12 @@ class StaffInfoDialog extends React.Component {
             <Form.Item label="籍贯" {...styles.formItemLayout}>
               {getFieldDecorator('hometown')(
                 <Input placeholder="省市" />
+              )}
+            </Form.Item>
+            
+            <Form.Item label="住址" {...styles.formItemLayout}>
+              {getFieldDecorator('address')(
+                <Input placeholder="当前住址" />
               )}
             </Form.Item>
 

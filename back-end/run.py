@@ -116,6 +116,14 @@ def fileGet(id, name):
     # 参数as_attachment=True，否则对于图片格式、txt格式，会把文件内容直接显示在浏览器，对于xlsx等格式，虽然会下载，但是下载的文件名也不正确
     return send_from_directory(path, name, as_attachment=True)
 
+@app.route(apiPrefix + 'fileBackup')
+def fileBackup():
+    return DBUtil.saveStaffToCVX(0)
+
+@app.route(apiPrefix + 'fileGetBackup')
+def fileGetBackup():
+    path = './backup/'
+    return send_from_directory(path, 'staffList.csv', as_attachment=True)
 
 # if __name__ == '__main__': 确保服务器只会在该脚本被 Python 解释器直接执行的时候才会运行，而不是作为模块导入的时候。
 if __name__ == "__main__":

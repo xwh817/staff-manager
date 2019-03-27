@@ -11,41 +11,47 @@ cursor = conn.cursor()
 
 
 def createTables():
-    sql_create_t_job = 'create table IF NOT EXISTS t_job(id INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(40) NOT NULL)'
-    sql_create_t_staff = '''create table IF NOT EXISTS t_staff(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name VARCHAR(40) NOT NULL,
-    job INTEGER NOT NULL,
-    company VARCHAR(100),
-    education SMALLINT,
-    gender CHAR(2),
-    birth_year SMALLINT,
-    hometown VARCHAR(40),
-    marriage BOOLEAN,
-    phone VARCHAR(20),
-    email VARCHAR(100),
-    qq VARCHAR(20),
-    wechat VARCHAR(20),
-    experience TEXT,
-    contact_logs TEXT,
-    create_time TIMESTAMP NOT NULL DEFAULT (datetime('now','localtime')),
-    modify_time TIMESTAMP NOT NULL DEFAULT (datetime('now','localtime'))
-    )'''
+    try:
+        sql_create_t_job = 'create table IF NOT EXISTS t_job(id INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(40) NOT NULL)'
+        sql_create_t_staff = '''create table IF NOT EXISTS t_staff(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name VARCHAR(40) NOT NULL,
+        job INTEGER NOT NULL,
+        company VARCHAR(100),
+        education SMALLINT,
+        gender CHAR(2),
+        birth_year SMALLINT,
+        hometown VARCHAR(40),
+        address VARCHAR(100),
+        marriage BOOLEAN,
+        phone VARCHAR(20),
+        email VARCHAR(100),
+        qq VARCHAR(20),
+        wechat VARCHAR(20),
+        experience TEXT,
+        contact_logs TEXT,
+        create_time TIMESTAMP NOT NULL DEFAULT (datetime('now','localtime')),
+        modify_time TIMESTAMP NOT NULL DEFAULT (datetime('now','localtime'))
+        )'''
 
-    # cursor.execute("drop trigger trigger_auto_timestamp")
+        # cursor.execute("drop trigger trigger_auto_timestamp")
 
-    sql_create_trigger_timestamp = '''CREATE TRIGGER IF NOT EXISTS trigger_auto_timestamp
-    AFTER UPDATE ON t_staff
-    FOR EACH ROW
-    BEGIN
-        update t_staff set modify_time=datetime('now','localtime') WHERE id = old.id;
-    END;
-    '''
+        sql_create_trigger_timestamp = '''CREATE TRIGGER IF NOT EXISTS trigger_auto_timestamp
+        AFTER UPDATE ON t_staff
+        FOR EACH ROW
+        BEGIN
+            update t_staff set modify_time=datetime('now','localtime') WHERE id = old.id;
+        END;
+        '''
 
-    cursor.execute(sql_create_t_job)
-    cursor.execute(sql_create_t_staff)
-    cursor.execute(sql_create_trigger_timestamp)
+        sql_add_address = 'alter table t_staff add column address varchar(100)'
 
+        cursor.execute(sql_create_t_job)
+        cursor.execute(sql_create_t_staff)
+        cursor.execute(sql_create_trigger_timestamp)
+        cursor.execute(sql_add_address)
+    except Exception as e:
+        print(str(e))
 
 createTables()
 
@@ -145,6 +151,7 @@ def addOrUpdateStaff(json_str):
                 staff.get('gender', ''),
                 staff.get('birth_year', 0),
                 staff.get('hometown', ''),
+                staff.get('address', ''),
                 staff.get('marriage', 0),
                 staff.get('phone', ''),
                 staff.get('email', ''),
@@ -154,7 +161,7 @@ def addOrUpdateStaff(json_str):
                 staff.get('contact_logs', '')
             )
 
-            sql = "INSERT INTO t_staff (name, job, company, education, gender, birth_year, hometown, marriage, phone, email, qq, wechat, experience, contact_logs) VALUES %s" % (
+            sql = "INSERT INTO t_staff (name, job, company, education, gender, birth_year, hometown, address, marriage, phone, email, qq, wechat, experience, contact_logs) VALUES %s" % (
                 values.__str__())
             print(sql)
             cursor.execute(sql)
@@ -216,15 +223,17 @@ def deleteStaff(id):
         }
         return json.dumps(re)
 
+
+staffColumns = ('id', 'name', 'job', 'company', 'education', 'gender', 'birth_year',
+               'hometown', 'address', 'marriage', 'phone', 'email', 'qq', 'wechat', 'experience', 'contact_logs')
+               
 # 将数据库返回结果包装成staff对象（字典）
 def getStaffsFromData(dateList):
-    columns = ('id', 'name', 'job', 'company', 'education', 'gender', 'birth_year',
-               'hometown', 'marriage', 'phone', 'email', 'qq', 'wechat', 'experience', 'contact_logs')
 
     staffs = []
     for item in dateList:
         staff = {}
-        for index, column in enumerate(columns):
+        for index, column in enumerate(staffColumns):
             staff[column] = item[index]
 
         staffs.append(staff)
@@ -239,8 +248,9 @@ def getStaffList(job):
     if job > 0:
         where = ' where job=%d' % (job)
 
+    columns = ','.join(staffColumns)
     order = ' order by id desc'
-    sql = "select * from %s%s%s" % (tableName, where, order)
+    sql = "select %s from %s%s%s" % (columns, tableName, where, order)
     print(sql)
 
     cursor.execute(sql)
@@ -288,9 +298,9 @@ def searchStaff(where):
 
 def saveStaffToCVX(jobId):
     try:
-        csvfile = open('staffList.csv', 'w', newline='')  # 打开方式还可以使用file对象
+        csvfile = open('./backup/staffList.csv', 'w', newline='')  # 打开方式还可以使用file对象
         writer = csv.writer(csvfile)
-        writer.writerow(['姓名', '年龄', '电话'])
+        writer.writerow(staffColumns)
         staffList = getStaffList(jobId)
         for item in staffList:
             writer.writerow(item)
@@ -313,5 +323,5 @@ def insertTestData():
 # getJobList()
 
 #insertTestData()
-# getStaffList(0)
+#getStaffList(0)
 #saveStaffToCVX(0)

@@ -21,5 +21,7 @@ export default class ApiUtil {
     static API_FILE_DELETE_DIR = ApiUtil.URL_ROOT + '/fileDeleteDir/';
     static API_FILE_GET = ApiUtil.URL_ROOT + '/fileGet';
     static API_FILE_GET_LIST = ApiUtil.URL_ROOT + '/fileGetList/';
+    static API_FILE_BACKUP = ApiUtil.URL_ROOT + '/fileBackup';
+    static API_FILE_GET_BACKUP = ApiUtil.URL_ROOT + '/fileGetBackup';
 
 }

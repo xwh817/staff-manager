@@ -5,12 +5,23 @@ import HttpUtil from './Utils/HttpUtil'
 import ApiUtil from './Utils/ApiUtil'
 
 import {
-    Table, Icon, Input, Select, Button, message,Popover, Divider
+    Table, Icon, Input, Select, Button, message, Popover, Divider, Pagination
 } from 'antd';
 
 import StaffInfoDialog from './StaffInfoDialog';
 
 class StaffList extends React.Component {
+
+    mAllData = [];
+
+    state = {
+        mJobs: [],
+        mData: [],
+        jobSelected: 0,
+        showInfoDialog: false,
+        smallSize: false,
+        editingItem: null,
+    };
 
     getPopoverInfo = (staff) => (
         <div style={{whiteSpace: 'pre-wrap', minWidth:200, maxWidth:800, maxHeight:600, overflow:'auto'}}>
@@ -56,6 +67,10 @@ class StaffList extends React.Component {
         dataIndex: 'hometown',
         key: 'hometown',
     }, {
+        title: '住址',
+        dataIndex: 'address',
+        key: 'address',
+    }, {
         title: '电话',
         dataIndex: 'phone',
         key: 'phone',
@@ -91,16 +106,7 @@ class StaffList extends React.Component {
         ),
     }];
 
-    mAllData = [];
-
-    state = {
-        mJobs: [],
-        mData: [],
-        jobSelected: 0,
-        showInfoDialog: false,
-        smallSize: false,
-        editingItem: null,
-    };
+    pagination = <Pagination total={this.state.mData.length}/>;
 
     getData() {
         HttpUtil.get(ApiUtil.API_JOB_LIST)
@@ -206,7 +212,7 @@ class StaffList extends React.Component {
         let where = JSON.stringify(this.searchItems);
         let url = ApiUtil.API_STAFF_SEARCH + "?where=" + encodeURI(where);
         HttpUtil.get(url)
-            .then( // 等待两次请求依次完成了才刷新界面
+            .then(
                 staffList => {
                     this.mAllData = staffList;
                     this.setState({
@@ -243,6 +249,7 @@ class StaffList extends React.Component {
                     dataSource={this.state.mData}
                     rowKey={item => item.id}
                     columns={this.columns}
+                    pagination={this.pagination}
                     scroll={{ x: 1000 }} />
 
                 <StaffInfoDialog
