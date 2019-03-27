@@ -38,7 +38,9 @@ apiPrefix = '/api/v1/'
 
 @app.route(apiPrefix + 'getStaffList/<int:job>')
 def getStaffList(job):
-    return DBUtil.getStaffList(job)
+    array = DBUtil.getStaffList(job)
+    jsonStaffs = DBUtil.getStaffsFromData(array)
+    return json.dumps(jsonStaffs)
 
 
 @app.route(apiPrefix + 'updateStaff', methods=['POST'])
@@ -62,7 +64,9 @@ def searchStaff():
     data = request.args.get('where')
     print("searchStaff:", data)
     where = json.loads(data)
-    re = DBUtil.searchStaff(where)
+    array = DBUtil.searchStaff(where)
+    jsonStaffs = DBUtil.getStaffsFromData(array)
+    re = json.dumps(jsonStaffs)
     return re
 
 
