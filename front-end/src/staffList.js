@@ -50,7 +50,6 @@ class StaffList extends React.Component {
     columns = [{
         title: '姓名',
         key: 'name',
-        align: 'center',
         width: 80,
         render: (staff) => (
             <Popover placement="right" content={this.showPopoverInfo(staff)} >
@@ -61,7 +60,6 @@ class StaffList extends React.Component {
         title: '职位',
         dataIndex: 'job',
         key: 'job',
-        align: 'center',
         render: (jobId) => (<span>{CommonValues.JOBS.getById(jobId) && CommonValues.JOBS.getById(jobId).name}</span>)
     }, {
         title: '地址',
@@ -174,11 +172,11 @@ class StaffList extends React.Component {
 
     handleWindowWidth = () => {
         // 窗口太小时，菜单列换行
-        let width = document.documentElement.clientWidth;
+        /* let width = document.documentElement.clientWidth;
         console.log("window width: " + width);
         this.setState({
             smallSize: width < 1260,
-        });
+        }); */
     }
 
     showUpdateDialog(item) {
@@ -281,8 +279,7 @@ class StaffList extends React.Component {
                         rowKey={item => item.id}
                         columns={this.columns}
                         size="small"
-                        pagination={this.pagination}
-                        scroll={{ x: 1000 }} />
+                        pagination={this.pagination} />
                 </Spin>
 
                 <StaffInfoDialog

@@ -17,18 +17,21 @@ class StaffInfoDialog extends React.Component {
   }
 
   componentWillReceiveProps(newProps) {
-    if (newProps.visible) {
-      
-      if (this.state.staff.id !==newProps.staff.id) {
-        this.getFileList(newProps.staff.id);
-      }
+    if (this.state.visible !== newProps.visible) {
+      this.setState({
+        visible: true
+      });
+    }
 
+    if (newProps.staff && this.state.staff.id !== newProps.staff.id) {
+      this.getFileList(newProps.staff.id);
       this.setState({
         visible: true,
         staff: newProps.staff,
         deleteConfirm: false,
       });
     }
+
   }
 
 
