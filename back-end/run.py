@@ -36,6 +36,29 @@ def react():
 apiPrefix = '/api/v1/'
 
 
+
+##################  Job接口  ###############
+
+@app.route(apiPrefix + 'getJobList')
+def getJobList():
+    return DBUtil.getJobList()
+
+@app.route(apiPrefix + 'updateJob', methods=['POST'])
+def updateJob():
+    data = request.get_data(as_text=True)
+    re = DBUtil.addOrUpdateJob(data)
+    return re
+
+@app.route(apiPrefix + 'deleteJob/<int:id>')
+def deleteJob(id):
+    re = DBUtil.deleteJob(id)
+    print(re)
+    return re
+
+
+
+##################  Staff接口  ###############
+
 @app.route(apiPrefix + 'getStaffList/<int:job>')
 def getStaffList(job):
     array = DBUtil.getStaffList(job)
@@ -47,7 +70,7 @@ def getStaffList(job):
 def updateStaff():
     data = request.get_data(as_text=True)
     re = DBUtil.addOrUpdateStaff(data)
-    if re['code'] >= 0:
+    if re['code'] >= 0: # 数据保存成功，移动附件
         FileUtil.fileMoveDir(re['id'])
     return json.dumps(re)
 
@@ -70,24 +93,8 @@ def searchStaff():
     return re
 
 
-@app.route(apiPrefix + 'getJobList')
-def getJobList():
-    return DBUtil.getJobList()
 
-
-@app.route(apiPrefix + 'updateJob', methods=['POST'])
-def updateJob():
-    data = request.get_data(as_text=True)
-    re = DBUtil.addOrUpdateJob(data)
-    return re
-
-
-@app.route(apiPrefix + 'deleteJob/<int:id>')
-def deleteJob(id):
-    re = DBUtil.deleteJob(id)
-    print(re)
-    return re
-
+##################  File接口  ###############
 
 @app.route(apiPrefix + 'fileUpload', methods=['POST'])
 def fileUpload():
@@ -124,6 +131,11 @@ def fileBackup():
 def fileGetBackup():
     path = './backup/'
     return send_from_directory(path, 'staffList.csv', as_attachment=True)
+
+
+
+
+
 
 # if __name__ == '__main__': 确保服务器只会在该脚本被 Python 解释器直接执行的时候才会运行，而不是作为模块导入的时候。
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-# cd 
+:: cd 
 python run.py
 
 pause

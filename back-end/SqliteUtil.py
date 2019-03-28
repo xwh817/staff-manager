@@ -16,14 +16,14 @@ def createTables():
         sql_create_t_staff = '''create table IF NOT EXISTS t_staff(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name VARCHAR(40) NOT NULL,
-        job INTEGER NOT NULL,
+        job INTEGER,
         company VARCHAR(100),
         education SMALLINT,
         gender CHAR(2),
         birth_year SMALLINT,
         hometown VARCHAR(40),
         address VARCHAR(100),
-        marriage BOOLEAN,
+        marriage SMALLINT DEFAULT 0,
         phone VARCHAR(20),
         email VARCHAR(100),
         qq VARCHAR(20),
@@ -44,14 +44,15 @@ def createTables():
         END;
         '''
 
-        sql_add_address = 'alter table t_staff add column address varchar(100)'
+        #sql_add_address = "alter table t_staff add column address varchar(100) default '';"
 
         cursor.execute(sql_create_t_job)
         cursor.execute(sql_create_t_staff)
         cursor.execute(sql_create_trigger_timestamp)
-        cursor.execute(sql_add_address)
+        # cursor.execute(sql_add_address)
     except Exception as e:
-        print(str(e))
+        print(repr(e))
+
 
 createTables()
 
@@ -109,9 +110,9 @@ def addOrUpdateJob(json_str):
     except Exception as e:
         re = {
             'code': -1,
-            'message': str(e)
+            'message': repr(e)
         }
-        print(str)
+        print(repr(e))
         return json.dumps(re)
 
 
@@ -129,7 +130,7 @@ def deleteJob(id):
     except Exception as e:
         re = {
             'code': -1,
-            'message': str(e)
+            'message': repr(e)
         }
         return json.dumps(re)
 
@@ -143,26 +144,23 @@ def addOrUpdateStaff(json_str):
         newId = id
 
         if id == 0:  # 新增
-            values = (
-                staff.get('name', ''),
-                staff.get('job', 0),
-                staff.get('company', ''),
-                staff.get('education', 0),
-                staff.get('gender', ''),
-                staff.get('birth_year', 0),
-                staff.get('hometown', ''),
-                staff.get('address', ''),
-                staff.get('marriage', 0),
-                staff.get('phone', ''),
-                staff.get('email', ''),
-                staff.get('qq', ''),
-                staff.get('wechat', ''),
-                staff.get('experience', ''),
-                staff.get('contact_logs', '')
-            )
+            keys = ''
+            values = ''
+            isFirst = True
+            for key, value in staff.items():
+                if isFirst:
+                    isFirst = False
+                else:
+                    keys += ','
+                    values += ','
+                keys += key
+                if isinstance(value, str):
+                    values += ("'%s'" % value)
+                else:
+                    values += str(value)
 
-            sql = "INSERT INTO t_staff (name, job, company, education, gender, birth_year, hometown, address, marriage, phone, email, qq, wechat, experience, contact_logs) VALUES %s" % (
-                values.__str__())
+            sql = "INSERT INTO t_staff (%s) values (%s)" % (keys, values)
+
             print(sql)
             cursor.execute(sql)
             result = '添加成功'
@@ -198,9 +196,10 @@ def addOrUpdateStaff(json_str):
         }
         return re
     except Exception as e:
+        print(repr(e))
         re = {
             'code': -1,
-            'message': str(e)
+            'message': repr(e)
         }
         return re
 
@@ -219,22 +218,27 @@ def deleteStaff(id):
     except Exception as e:
         re = {
             'code': -1,
-            'message': str(e)
+            'message': repr(e)
         }
         return json.dumps(re)
 
 
 staffColumns = ('id', 'name', 'job', 'company', 'education', 'gender', 'birth_year',
-               'hometown', 'address', 'marriage', 'phone', 'email', 'qq', 'wechat', 'experience', 'contact_logs')
-               
-# 将数据库返回结果包装成staff对象（字典）
-def getStaffsFromData(dateList):
+                'hometown', 'address', 'marriage', 'phone', 'email', 'qq', 'wechat', 'experience', 'contact_logs')
 
+# 将数据库返回结果包装成staff对象（字典）
+
+
+def getStaffsFromData(dataList):
     staffs = []
-    for item in dateList:
+    for itemArray in dataList:   # dataList数据库返回的数据集，是一个二维数组
         staff = {}
-        for index, column in enumerate(staffColumns):
-            staff[column] = item[index]
+        for columnIndex, columnName in enumerate(staffColumns):
+            columnValue = itemArray[columnIndex]
+            if columnValue is None:
+                columnValue = 0 if columnName in (
+                    'job', 'education', 'birth_year') else ''
+            staff[columnName] = columnValue
 
         staffs.append(staff)
 
@@ -256,49 +260,51 @@ def getStaffList(job):
     cursor.execute(sql)
 
     dateList = cursor.fetchall()     # fetchall() 获取所有记录
-
-    # json_str = json.dumps(getFormatData(tableName, dateList))
-    #staffList = getStaffsFromData(dateList)
-    # print(json_str)
-
     return dateList
 
 
 def searchStaff(where):
     try:
         sql_where = ''
-        isFirst = True
+        sql_like = ''
+        
+        if where.get('job', 0) > 0:
+            sql_where = ("where job=" + str(where['job']))
+
+        where_like_items = []
         for key, value in where.items():
-            if value and len(value.strip()) > 0:
-                if isFirst:
-                    sql_where += ' where '
-                    isFirst = False
-                else:
-                    sql_where += ' or '
+            if isinstance(value, str) and len(value.strip()) > 0:
+                where_item = (key + " like '%" + value + "%'")
+                where_like_items.append(where_item)
+  
+        if len(where_like_items) > 0:
+            sql_like = "(%s)" % ' or '.join(where_like_items)
 
-                sql_where += (key + " like '%"+value+"%'")
+        if len(sql_where) > 0:
+            if len(sql_like) > 0:
+                sql_where += (" and " + sql_like)
+        else:
+            if len(sql_like) > 0:
+                sql_where = "where " + sql_like
 
+        columns = ','.join(staffColumns)
         order = ' order by id desc'
-        sql = "select * from t_staff %s%s" % (sql_where, order)
+        sql = "select %s from t_staff %s%s" % (columns, sql_where, order)
         print(sql)
 
         cursor.execute(sql)
 
         dateList = cursor.fetchall()     # fetchall() 获取所有记录
-
-        # json_str = json.dumps(getFormatData(tableName, dateList))
-        #staffList = getStaffsFromData(dateList)
-        # print(json_str)
-
         return dateList
     except Exception as e:
-        print(str(e))
+        print(repr(e))
         return []
 
 
 def saveStaffToCVX(jobId):
     try:
-        csvfile = open('./backup/staffList.csv', 'w', newline='')  # 打开方式还可以使用file对象
+        # 这儿编码用utf-8不知道为啥乱码，网上有说utf-8-sig的，也不行，最后改成gb18030好了
+        csvfile = open('./backup/staffList.csv', 'w', newline='', encoding='gb18030')
         writer = csv.writer(csvfile)
         writer.writerow(staffColumns)
         staffList = getStaffList(jobId)
@@ -308,20 +314,29 @@ def saveStaffToCVX(jobId):
         csvfile.close()
         return json.dumps({'code': 0})
     except Exception as e:
-        print(str(e))
-        return json.dumps({'code': -1, 'message': str(e)})
+        print(repr(e))
+        return json.dumps({'code': -1, 'message': repr(e)})
 
 
-def insertTestData():
-    json_update = '{"education": 3, "experience": "\u300c\u6b66\u5f53\u4e03\u4fa0\u300d\u4e4b\u5e08\uff0c\u5176\u88ab\u63a8\u4e3a\u300c\u5929\u4e0b\u7b2c\u4e00\u9ad8\u624b\u300d\uff0c\u4e43\u540d\u626c\u5929\u4e0b\u7684\u4e00\u4ee3\u6b66\u5b66\u5927\u5e08\u3002", "phone": "13760798503", "qq": "969853979", "name": "\u5f20\u4e09\u4e30", "job": 1, "marriage": 0, "id": 1, "gender": "\u7537", "email": "testemail@163.com", "hometown": "\u6e56\u5317", "company": "\u6b66\u5f53\u6d3e", "contact_logs": "\u9664\u4e03\u4e2a\u5165\u5ba4\u5f1f\u5b50\u5916\uff0c\u95e8\u4eba\u53ef\u8c13\u6843\u674e\u5929\u4e0b\uff0c\u4ee5\u5929\u8d4b\u5353\u7edd\uff0c\u609f\u6027\u8d85\u7136\u81ea\u521b\u6b66\u5f53\u6d3e\uff0c\u540c\u6b66\u6797\u95e8\u6237\u300c\u5c11\u6797\u6d3e\u300d\u5206\u5ead\u6297\u793c\u3002\u5176\u4e3a\u4eba\u6b63\u6c14\u51db\u7136\uff0c\u5bbd\u548c\u4ece\u5bb9\uff0c\u9887\u6709\u4ed9\u98ce\u9053\u9aa8\u4e4b\u59ff\uff0c\u5176\u662f\u5f53\u4e16\u65e0\u51fa\u5176\u53f3\u7684\u6b66\u5b66\u5947\u624d\u3002\u767e\u5c81\u4e4b\u65f6\u81ea\u521b\u300c\u592a\u6781\u62f3\u300d\u3001\u300c\u592a\u6781\u5251\u300d\uff0c\u5c06\u300c\u6b66\u5f53\u6d3e\u300d\u53d1\u626c\u5149\u5927\uff0c\u5a01\u540d\u8fdc\u626c\u6b66\u6797\u8c6a\u6770\u65e0\u4e0d\u62dc\u670d\u3002", "birth_year": 87, "wechat": ""}'
-    json_add = '{"education": 3, "experience": "\u300c\u6b66\u5f53\u4e03\u4fa0\u300d\u4e4b\u5e08\uff0c\u5176\u88ab\u63a8\u4e3a\u300c\u5929\u4e0b\u7b2c\u4e00\u9ad8\u624b\u300d\uff0c\u4e43\u540d\u626c\u5929\u4e0b\u7684\u4e00\u4ee3\u6b66\u5b66\u5927\u5e08\u3002", "phone": "888666", "qq": "540311360", "name": "\u5f20\u4e09\u4e30", "job": 1, "marriage": 0, "gender": "\u7537", "email": "testemail@163.com", "hometown": "\u6e56\u5317", "company": "\u6b66\u5f53\u6d3e", "contact_logs": "\u9664\u4e03\u4e2a\u5165\u5ba4\u5f1f\u5b50\u5916\uff0c\u95e8\u4eba\u53ef\u8c13\u6843\u674e\u5929\u4e0b\uff0c\u4ee5\u5929\u8d4b\u5353\u7edd\uff0c\u609f\u6027\u8d85\u7136\u81ea\u521b\u6b66\u5f53\u6d3e\uff0c\u540c\u6b66\u6797\u95e8\u6237\u300c\u5c11\u6797\u6d3e\u300d\u5206\u5ead\u6297\u793c\u3002\u5176\u4e3a\u4eba\u6b63\u6c14\u51db\u7136\uff0c\u5bbd\u548c\u4ece\u5bb9\uff0c\u9887\u6709\u4ed9\u98ce\u9053\u9aa8\u4e4b\u59ff\uff0c\u5176\u662f\u5f53\u4e16\u65e0\u51fa\u5176\u53f3\u7684\u6b66\u5b66\u5947\u624d\u3002\u767e\u5c81\u4e4b\u65f6\u81ea\u521b\u300c\u592a\u6781\u62f3\u300d\u3001\u300c\u592a\u6781\u5251\u300d\uff0c\u5c06\u300c\u6b66\u5f53\u6d3e\u300d\u53d1\u626c\u5149\u5927\uff0c\u5a01\u540d\u8fdc\u626c\u6b66\u6797\u8c6a\u6770\u65e0\u4e0d\u62dc\u670d\u3002", "birth_year": 87, "wechat": "445566"}'
-    addOrUpdateStaff(json_update)
+def staffTestData():
+    insertStaff = {"name": "中文中文", "experience": "中文测试\n\n中文测试",
+                   "birth_year": 87, "wechat": "445566"}
+    #insertStaff = {"education": 3, "experience": "中文测试\n\n中文测试", "phone": "13760798503", "qq": "969853979", "name": "\u5f20\u4e09\u4e30", "job": 1, "marriage": 0, "gender": "\u7537", "email": "testemail@163.com", "hometown": "\u6e56\u5317", "company": "\u6b66\u5f53\u6d3e", "contact_logs": "中文测试\n中文测试", "birth_year": 87, "wechat": ""}
+    updateStaff = {"id": 1, "experience": "中文测试\n\n中文测试",
+                   "birth_year": 87, "wechat": "445566"}
+    jsonStr = json.dumps(insertStaff)
+    print(jsonStr)
+    addOrUpdateStaff(jsonStr)
 
 
 # addOrUpdateJob('{"name": "test23", "index": 8}')
 # addOrUpdateJob('{"name": "test23", "id": 8, "index": 8}')
 # getJobList()
 
-#insertTestData()
-#getStaffList(0)
+# staffTestData()
+#staffList = getStaffsFromData(getStaffList(0))
+# print(str(staffList))
 #saveStaffToCVX(0)
+
+#searchStaff({'job':4,'address':'123'})
+#searchStaff({'job':0,'address':''})
