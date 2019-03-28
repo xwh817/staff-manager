@@ -231,7 +231,7 @@ class StaffInfoDialog extends React.Component {
               )}
             </Form.Item>
             
-            <Form.Item label="住址" {...styles.formItemLayout}>
+            <Form.Item label="地址" {...styles.formItemLayout}>
               {getFieldDecorator('address')(
                 <Input placeholder="当前住址" />
               )}
