@@ -16,14 +16,17 @@ class StaffInfoDialog extends React.Component {
     fileList: [],
   }
 
+  isFileUploaded = false;  // 是否有过文件上传
+
   componentWillReceiveProps(newProps) {
     if (this.state.visible !== newProps.visible) {
       this.setState({
-        visible: true
+        visible: newProps.visible
       });
     }
 
     if (newProps.staff && this.state.staff.id !== newProps.staff.id) {
+      this.isFileUploaded = false;
       this.getFileList(newProps.staff.id);
       this.setState({
         visible: true,
@@ -46,6 +49,7 @@ class StaffInfoDialog extends React.Component {
               uid: '' + index,
               name: file,
               status: 'done',
+              staffId: this.state.staff.id,
               url: (`${ApiUtil.URL_IP + ApiUtil.API_FILE_GET}/${id}/${file}`)
             }
           })
@@ -55,6 +59,8 @@ class StaffInfoDialog extends React.Component {
       ).catch(error => {
         message.error(error.message);
       });
+    } else {
+      this.setState({fileList: []});
     }
   }
 
@@ -80,13 +86,16 @@ class StaffInfoDialog extends React.Component {
 
         console.log('Received values of form: ', values);
         setTimeout(() => {
+          this.state.fileList.forEach(file => {
+            file.staffId = this.state.staff.id
+            file.url = `${ApiUtil.URL_IP + ApiUtil.API_FILE_GET}/${file.staffId}/${file.name}`
+          });
           this.setState({
             visible: false,
             confirmLoading: false,
           });
 
           this.props.onDialogConfirm(values);
-
         }, 1000);
       }
     });
@@ -99,12 +108,24 @@ class StaffInfoDialog extends React.Component {
     this.setState({
       visible: false,
     });
-    HttpUtil.get(ApiUtil.API_FILE_DELETE_DIR + 0) // 取消时删除临时上传文件目录
-      .then(
 
-      ).catch(error => {
+    if (this.isFileUploaded) {
+      HttpUtil.get(ApiUtil.API_FILE_DELETE_DIR + 0) // 取消时删除临时上传文件目录
+      .then(re => {
+        let fileList = this.state.fileList;
+
+        fileList = fileList.filter(file => {
+          return file.staffId > 0
+        });
+
+        if (fileList.length !== this.state.fileList.length) {
+          this.setState({fileList: fileList});
+        }
+      }).catch(error => {
         message.error(error.message);
       });
+    }
+    
   }
 
   handleDelete = () => {
@@ -140,12 +161,13 @@ class StaffInfoDialog extends React.Component {
       console.log(info.file, info.fileList);
     } */
     if (info.file.status === 'done') {
+      this.isFileUploaded = true;
       message.success(`${info.file.name} 文件上传成功`);
     } else if (info.file.status === 'error') {
       message.error(`${info.file.name} 文件上传失败`);
     } else if (info.file.status === 'removed') {
       //message.warn(`${info.file.name} 文件删除中……`);
-      HttpUtil.get(`${ApiUtil.API_FILE_DELETE}/${this.state.staff.id}/${info.file.name}`)
+      HttpUtil.get(`${ApiUtil.API_FILE_DELETE}/${info.file.staffId}/${info.file.name}`)
       .then(
         re => {
           message.info(re.code===0 ? '文件删除成功':'文件删除失败');
@@ -154,6 +176,14 @@ class StaffInfoDialog extends React.Component {
         message.error(error.message);
       });
     }
+
+    info.fileList.forEach(file => {
+      if (!file.url) {// 刚上传的文件在临时文件夹里
+        file.staffId = 0
+        file.url = `${ApiUtil.URL_IP + ApiUtil.API_FILE_GET}/0/${file.name}`
+      }
+    });
+
     // 这里是一个大坑啊，每次要手动更新fileList,不然界面不更新
     this.setState({fileList:info.fileList});
   }

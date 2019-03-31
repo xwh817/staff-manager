@@ -11,11 +11,9 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "prebuild-linux": "rm -rf ../back-end/templates",
-    "prebuild": "if exist ..\\back-end\\front-build (rmdir ..\\back-end\\front-build /q/s)",
+    "prebuild": "rm -rf ../back-end/templates",
     "build": "react-scripts build",
-    "postbuild": "move build ..\\back-end\\front-build",
-    "postbuild-linux": "mv build ../back-end/templates",
+    "postbuild": "mv build ../back-end/templates",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
