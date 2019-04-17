@@ -2,6 +2,9 @@ import React from 'react';
 import HttpUtil from './Utils/HttpUtil'
 import ApiUtil from './Utils/ApiUtil'
 
+import {connect} from "react-redux"
+import {getJobs, updateJob} from "./redux/actions"
+
 import {
     Table, Icon, Button, message, Input, Modal
 } from 'antd';
@@ -34,7 +37,7 @@ class JobList extends React.Component {
         job:{}
     };
 
-    getData() {
+    /* getData() {
         HttpUtil.get(ApiUtil.API_JOB_LIST)
             .then(
                 data => {
@@ -49,14 +52,14 @@ class JobList extends React.Component {
             ).catch(error => {
                 message.error(error.message);
             });
-    }
+    } */
 
     removeData(id) {
         HttpUtil.get(ApiUtil.API_JOB_DELETE + id)
             .then(
                 re => {
                     message.info(re.message);
-                    this.getData();
+                    this.props.getJobs()
                 }
             ).catch(error => {
                 message.error(error.message);
@@ -64,11 +67,16 @@ class JobList extends React.Component {
     }
 
     componentDidMount() {
-        this.getData();
+        //this.getData();
+        this.props.getJobs()
     }
 
 
     render() {
+        if (this.props.message) {
+            message.error(this.props.message.message);
+        }
+
         return (
             <div>
                 <div style={{ textAlign: 'right'}} >
@@ -77,7 +85,7 @@ class JobList extends React.Component {
                 </div>
                 <Table
                     style={{ marginTop: 10 }}
-                    dataSource={this.state.mJobs}
+                    dataSource={this.props.jobList}
                     rowKey={item => item.id}
                     columns={this.columns}
                     pagination={false} />
@@ -120,6 +128,7 @@ class JobList extends React.Component {
         console.log(job);
 
         if (job.name) {
+            //this.props.updateJob(job);
             HttpUtil.post(ApiUtil.API_JOB_UPDATE, job)
             .then(
                 re => {
@@ -127,7 +136,7 @@ class JobList extends React.Component {
                     this.setState({
                         showAddDialog: false
                     });
-                    this.getData();
+                    this.props.getJobs()
                 }
             ).catch(error => {
                 message.error(error.message);
@@ -165,4 +174,15 @@ class JobList extends React.Component {
 }
 
 
-export default JobList;
+
+const mapStateToProps = (state) => {
+    return {
+      jobList: state.jobs.jobs,
+      error: state.jobs.message
+    }
+  }
+
+// 将action进行抽取后的写法：
+export default connect(
+    mapStateToProps, 
+    {getJobs, updateJob})(JobList);

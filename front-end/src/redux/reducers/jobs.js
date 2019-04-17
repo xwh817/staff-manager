@@ -1,6 +1,8 @@
 
 const initialState = {
-    jobs:[]
+    loading:false,
+    jobs:[],
+    message:''
 }
 
 
@@ -11,8 +13,23 @@ const initialState = {
  */
 export default function(state = initialState, action) {
     switch (action.type) {
-        case 'getJobs': {
-            return {...state}
+        case 'action_jobs_start': {
+            return {...state, loading:true, message:''}
+        }
+        case 'get_jobs_success': {
+            var data = action.payload;
+            data.map((item, index) => {
+                item.index = index + 1;
+                return item;
+            });
+            return {...state, loading:false, jobs:data, message:''}
+        }
+        case 'update_jobs_success': {
+            var others = state.jobs.filter(item => item.id !== action.payload.id)
+            return {...state, loading:false, jobs:[...others, action.payload], message:action.payload}
+        }
+        case 'action_jobs_fail': {
+            return {...state, loading:false, message: action.payload}
         }
         default:
             return state;

@@ -10,11 +10,17 @@ export default class HttpUtil {
     static get(url) {
         return new Promise((resolve, reject) => {
             fetch(url)
-            .then(response => response.json())  // 将文本结果转成json对象
-            .then(result => resolve(result))
-            .catch(error => {
-                reject(error);
-            })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json(); // 将文本结果转成json对象
+                    } else {
+                        throw new Error(response.status + " : " + response.statusText)
+                    }
+                })
+                .then(result => resolve(result))
+                .catch(error => {
+                    reject(error);
+                })
         });
     }
 
@@ -32,11 +38,11 @@ export default class HttpUtil {
                 },
                 body: JSON.stringify(data)  // 将json对象转成文本
             })
-            .then(response => response.json())
-            .then(result => resolve(result))
-            .catch(error => {
-                reject(error);
-            })
+                .then(response => response.json())
+                .then(result => resolve(result))
+                .catch(error => {
+                    reject(error);
+                })
         });
     }
 
