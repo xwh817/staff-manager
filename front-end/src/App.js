@@ -51,7 +51,9 @@ class App extends Component {
             <Avatar src={myIcon} alt='' style={{width:60, height:60, marginTop:10}}/>
           </div>
 
-          <Menu theme="dark" defaultSelectedKeys={[this.state.currentPage]} mode="inline" onSelect={({key}) => this.setState({currentPage:key})}>
+          <Menu theme="dark"  mode="inline"
+            defaultSelectedKeys={[this.state.currentPage]} 
+            onSelect={({key}) => this.setState({currentPage:key})}>
             <Menu.Item key="1">
               <Icon type="team" />
               <span>人员管理</span>

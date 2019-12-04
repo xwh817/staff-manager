@@ -8,7 +8,7 @@ import HttpUtil from '../Utils/HttpUtil'
 
 export const getJobs = () => (dispatch, getState) => {
     dispatch({
-        type: 'action_jobs_start',
+        type: 'get_jobs_start',
     });
     //先去请求数据
     HttpUtil.get(ApiUtil.API_JOB_LIST)
@@ -24,7 +24,7 @@ export const getJobs = () => (dispatch, getState) => {
         .catch(e => {
             console.log(e)
             dispatch({
-                type: 'action_jobs_fail',
+                type: 'get_jobs_fail',
                 payload: e
             })
         })
